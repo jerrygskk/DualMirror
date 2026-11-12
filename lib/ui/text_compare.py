@@ -6,7 +6,8 @@ from PySide6.QtCore import Qt, Signal, QRect, QSize, QPoint, QTimer, QEvent
 from PySide6.QtGui import QColor, QBrush, QRegion, QPainter, QTextCursor, QTextFormat, QKeySequence, QShortcut
 from PySide6.QtWidgets import (QWidget, QPlainTextEdit, QTextEdit, QVBoxLayout,
                                QHBoxLayout, QLabel, QPushButton, QSplitter, QStyle, QLineEdit,
-                               QApplication, QFileDialog, QMenu, QToolTip, QPlainTextDocumentLayout, QComboBox)
+                               QApplication, QFileDialog, QMenu, QToolTip, QPlainTextDocumentLayout, QComboBox,
+                               QRadioButton, QButtonGroup)
 from lib.core.core import TextFile, differences, merge_block, fingerprint, atomic_write
 from lib.ui.ui_common import confirmBox, msgCritical, msgInfo, icon_button
 from lib.ui.syntax_styles import LANGUAGES, SyntaxHighlighter, detect_language
@@ -389,16 +390,39 @@ class TextCompare(QWidget):
         self.find_box.hide()
         self.find_box.returnPressed.connect(self.find_next)
         bar.addWidget(self.find_box)
+        self.search_scope = QWidget(self)
+        self.search_scope.setAccessibleName('搜尋與取代範圍')
+        scope_row = QHBoxLayout(self.search_scope)
+        scope_row.setContentsMargins(0, 0, 0, 0)
+        self.search_scope_group = QButtonGroup(self)
+        self.search_scope_buttons = {}
+        for title, value in (('雙側', 'both'), ('左側', 'left'), ('右側', 'right')):
+            button = QRadioButton(title, self.search_scope)
+            self.search_scope_group.addButton(button)
+            self.search_scope_buttons[value] = button
+            scope_row.addWidget(button)
+        self.search_scope_buttons['both'].setChecked(True)
+        self.search_scope.hide()
+        bar.addWidget(self.search_scope)
         self.replace_button = tool_button(self, '搜尋與取代（Ctrl+H）', 'imgFind')
         self.replace_button.clicked.connect(self.show_replace)
         bar.addWidget(self.replace_button)
+        self.close_find_button = QPushButton('× 關閉', self)
+        self.close_find_button.setToolTip('關閉搜尋與取代（Esc）')
+        self.close_find_button.clicked.connect(self.hide_find)
+        self.close_find_button.hide()
+        bar.addWidget(self.close_find_button)
+        self.close_find_shortcut = QShortcut(QKeySequence('Escape'), self)
+        self.close_find_shortcut.setContext(Qt.WidgetWithChildrenShortcut)
+        self.close_find_shortcut.activated.connect(self.hide_find)
+        self.close_find_shortcut.setEnabled(False)
         bar.addStretch()
         layout.addLayout(bar)
         self.replace_panel = QWidget(self)
         replace_row = QHBoxLayout(self.replace_panel)
         replace_row.setContentsMargins(0, 0, 0, 0)
         self.replace_box = QLineEdit()
-        self.replace_box.setPlaceholderText('取代為（目前側）')
+        self.replace_box.setPlaceholderText('取代為（依搜尋範圍）')
         replace_row.addWidget(self.replace_box, 1)
         for title, all_matches in (('取代目前', False), ('全部取代', True)):
             button = QPushButton(title)
@@ -680,21 +704,29 @@ class TextCompare(QWidget):
 
     def replace_matches(self, all_matches=False):
         self.flush_edit()
-        side = self.active_side
-        if self.docs[side] is None: return
         query = self.find_box.text()
         if not query: return
-        text, replacement = self.texts[side], self.replace_box.text()
+        sides = self.search_sides()
+        replacement = self.replace_box.text()
         if all_matches:
-            count = text.count(query)
-            self.commit_text(side, text.replace(query, replacement))
-            self.summary.setText(f'已取代 {count} 處（目前側）')
+            count = sum(self.texts[side].count(query) for side in sides)
+            updated = list(self.texts)
+            for side in sides: updated[side] = updated[side].replace(query, replacement)
+            if updated != self.texts:
+                self.undo_stack.append(tuple(self.texts))
+                self.redo_stack.clear()
+                self.texts = updated
+                self.refresh()
+            self.summary.setText(f'已取代 {count} 處（{self.search_scope_group.checkedButton().text()}）')
         else:
+            side = self.active_side
             a, b = self.selection_offsets(side)
-            if text[a:b] != query:
+            if side not in sides or self.texts[side][a:b] != query:
                 self.find_next()
+                side = self.active_side
                 a, b = self.selection_offsets(side)
-            if text[a:b] == query:
+            text = self.texts[side]
+            if side in sides and text[a:b] == query:
                 self.commit_text(side, text[:a] + replacement + text[b:], a + len(replacement))
                 self.find_next()
 
@@ -730,22 +762,52 @@ class TextCompare(QWidget):
 
     def show_find(self):
         self.find_box.show()
+        self.search_scope.show()
+        self.close_find_button.show()
+        self.close_find_shortcut.setEnabled(True)
         self.find_box.setFocus()
         self.find_box.selectAll()
+
+    def hide_find(self):
+        self.find_box.hide()
+        self.search_scope.hide()
+        self.replace_panel.hide()
+        self.close_find_button.hide()
+        self.close_find_shortcut.setEnabled(False)
+        (self.left_edit, self.right_edit)[self.active_side].setFocus()
+
+    def search_sides(self):
+        scope = next(key for key, button in self.search_scope_buttons.items() if button.isChecked())
+        sides = {'both': (0, 1), 'left': (0,), 'right': (1,)}[scope]
+        return tuple(side for side in sides if self.docs[side] is not None)
 
     def find_next(self, reverse=False):
         self.flush_edit()
         query = self.find_box.text()
         if not query: return
-        editor = (self.left_edit, self.right_edit)[self.active_side]
+        sides = self.search_sides()
+        if not sides: return
         from PySide6.QtGui import QTextDocument
         flags = QTextDocument.FindBackward if reverse else QTextDocument.FindFlags()
-        if not editor.find(query, flags):
+        start = self.active_side if self.active_side in sides else sides[-1 if reverse else 0]
+        ordered = list(sides)
+        if reverse: ordered.reverse()
+        index = ordered.index(start)
+        ordered = ordered[index:] + ordered[:index]
+        for step, side in enumerate(ordered + [start]):
+            editor = (self.left_edit, self.right_edit)[side]
             cursor = editor.textCursor()
-            cursor.movePosition(QTextCursor.End if reverse else QTextCursor.Start)
-            editor.setTextCursor(cursor)
-            if not editor.find(query, flags):
-                self.summary.setText('找不到符合的文字')
+            if step or self.active_side not in sides:
+                cursor.movePosition(QTextCursor.End if reverse else QTextCursor.Start)
+            found = editor.document().find(query, cursor, flags)
+            if not found.isNull():
+                editor.setTextCursor(found)
+                editor.ensureCursorVisible()
+                self.active_side = side
+                self.summary.setText(f'搜尋結果：{"左側" if side == 0 else "右側"}')
+                self.update_positions()
+                return
+        self.summary.setText('找不到符合的文字')
         self.update_positions()
 
     def undo(self):

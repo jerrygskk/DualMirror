@@ -28,6 +28,29 @@ def select_rows(editor, first, end):
     editor.setTextCursor(cursor)
 
 
+@pytest.mark.parametrize('replace', [False, True])
+@pytest.mark.parametrize('close_with', ['button', 'escape'])
+def test_search_can_close_and_reopen(comparison, qtbot, replace, close_with):
+    window = comparison
+    window.right_edit.setFocus()
+    window.active_side = 1
+    window.show_replace() if replace else window.show_find()
+    window.find_box.setText('last')
+    window.replace_box.setText('kept')
+    if replace: window.replace_box.setFocus()
+    if close_with == 'button':
+        qtbot.mouseClick(window.close_find_button, Qt.LeftButton)
+    else:
+        qtbot.keyClick(window.replace_box if replace else window.find_box, Qt.Key_Escape)
+    assert window.find_box.isHidden()
+    assert window.replace_panel.isHidden()
+    assert window.right_edit.hasFocus()
+    window.show_replace()
+    assert window.find_box.isVisible() and window.replace_panel.isVisible()
+    assert window.find_box.text() == 'last'
+    assert window.replace_box.text() == 'kept'
+
+
 @pytest.mark.parametrize('value', ['1', '中', '😀'], ids=['digit', 'cjk', 'non-bmp'])
 def test_ime_preedit_after_eof_insert_never_commits_alignment_newline(qtbot, tmp_path, monkeypatch, value):
     from PySide6.QtWidgets import QApplication
@@ -197,6 +220,7 @@ def test_edit_then_merge_and_replace_share_history(comparison, qtbot):
 
 def test_replace_current_only_changes_one_occurrence(comparison):
     w = comparison
+    w.search_scope_buttons['right'].click()
     w.active_side = 1
     w.find_box.setText('a'); w.replace_box.setText('Q')
     w.place_cursor(1, 0)
@@ -204,6 +228,64 @@ def test_replace_current_only_changes_one_occurrence(comparison):
     assert w.texts[1] == 'Q\u00a0😀\nlast\n'
     w.replace_matches()
     assert w.texts[1] == 'Q\u00a0😀\nlQst\n'
+
+
+@pytest.mark.parametrize('scope,changed', [('left', [True, False]), ('right', [False, True]), ('both', [True, True])])
+def test_replace_all_scope_and_one_undo(comparison, scope, changed):
+    w = comparison
+    before = tuple(w.texts)
+    w.search_scope_buttons[scope].click()
+    w.find_box.setText('last'); w.replace_box.setText('end')
+    w.replace_matches(True)
+    assert w.texts == [text.replace('last', 'end') if change else text for text, change in zip(before, changed)]
+    w.undo()
+    assert tuple(w.texts) == before
+    w.redo()
+    assert w.texts == [text.replace('last', 'end') if change else text for text, change in zip(before, changed)]
+
+
+def test_search_both_sides_wraps_forward_and_backward(comparison):
+    w = comparison
+    assert list(w.search_scope_buttons) == ['both', 'left', 'right']
+    assert [button.text() for button in w.search_scope_buttons.values()] == ['雙側', '左側', '右側']
+    assert w.search_scope_buttons['both'].isChecked()
+    w.find_box.setText('last')
+    w.place_cursor(0, 0)
+    w.active_side = 0
+    for expected in (0, 1, 0):
+        w.find_next()
+        assert w.active_side == expected
+        assert (w.left_edit, w.right_edit)[expected].textCursor().selectedText() == 'last'
+    w.find_next(True)
+    assert w.active_side == 1
+
+
+@pytest.mark.parametrize('scope,expected', [('left', 0), ('right', 1)])
+def test_single_side_search_stays_in_scope(comparison, scope, expected):
+    w = comparison
+    w.search_scope_buttons[scope].click()
+    assert sum(button.isChecked() for button in w.search_scope_buttons.values()) == 1
+    w.active_side = 1
+    w.find_box.setText('last')
+    for _ in range(3):
+        w.find_next()
+        assert w.active_side == expected
+    before = tuple(w.texts)
+    w.find_box.setText('not-present')
+    w.replace_box.setText('wrong')
+    w.replace_matches()
+    assert tuple(w.texts) == before
+
+
+def test_replace_current_both_changes_only_selected_match(comparison):
+    w = comparison
+    w.find_box.setText('last'); w.replace_box.setText('end')
+    w.active_side = 1
+    w.place_cursor(1, 0)
+    before = tuple(w.texts)
+    w.replace_matches()
+    assert w.texts == [before[0], before[1].replace('last', 'end')]
+    assert w.active_side == 0
 
 
 def test_save_as_rechecks_target_after_confirmation(comparison, tmp_path, monkeypatch):
@@ -243,6 +325,7 @@ def test_missing_side_cannot_be_edited_or_saved(qtbot, tmp_path):
     existing, missing = tmp_path / 'exists', tmp_path / 'missing'
     existing.write_bytes(b'one')
     w = TextCompare(existing, missing); qtbot.addWidget(w)
+    w.search_scope_buttons['right'].click()
     w.replace_selection(1, 'bad')
     w.active_side = 1
     w.find_box.setText('one'); w.replace_box.setText('bad')
