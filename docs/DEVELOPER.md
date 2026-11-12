@@ -1,13 +1,34 @@
 # DualMirror 開發文件
 
-目前產品版號：**0.1.0（未發布）**，唯一來源 `lib/settings/version.py`。
+目前產品版號：**0.1.0**，首次發布日期 2026-11-12，唯一來源 `lib/settings/version.py`。
 協作說明見 [AGENTS.md](../AGENTS.md)，踩雷速查見 [PITFALLS.md](PITFALLS.md)，
 歷史版本見 [HISTORY.md](HISTORY.md)。不建立另一份 CLAUDE.md。
 
 專案工作目錄：`D:\Git\DualMirror`。啟動與測試不依賴原 Everything 資料夾。
 `啟動.cmd` 比照 CryptoAna，以 `start` 呼叫正式 Python 3.12 的 `pythonw.exe`；CMD 隨即結束，主程式繼續執行。
 
-## 目錄整理後的實際建置（2026-11-12）
+## 0.1.0 首次發布（2026-11-12）
+
+依維護者指定使用目前版號，未進版。正式 Python 3.12.10 依本文件命令清除舊產物，
+重新產生版本資源，以 PyInstaller `--clean --noconfirm` 建置 onefile、無 UPX。
+`dist/DualMirror.exe` 為 **32,878,399 位元組**，檔案及產品版本均為 0.1.0。
+SHA256 為 `914e5d774aefcd44e1322b351d6b525b7224060afbe0ec827e1981abbeda203e`。
+
+發布前完整測試 **288 項通過，未排除測試**，包含正式環境契約、拖拉、搜尋與逐側更新。
+完成候選檔、檔名及 Python 註解的品牌文字與語法檢查，並執行本機個資掃描。
+此檢查只代表未命中本機已知名單；開源來源指紋比對仍未完成，不宣稱合規全部通過。
+
+封裝版使用隔離設定及暫存樣本，實際驗證文字合併儲存、UTF-8 BOM／CRLF 位元組保留、
+搜尋「雙側、左側、右側」及 Esc、第二程序交付 Hex 分頁並退出。
+另將視窗最小化、外部修改兩側檔案，再還原視窗，實際確認先左後右詢問並更新 Hex 內容。
+試跑程序已關閉，未修改真實使用者資料或設定；封裝版真實右鍵註冊仍未重新驗證。
+Windows 可見原始碼測試曾印出 Qt `0x8001010d` 但測試通過，根因尚未確認，不宣稱已治本。
+
+發布頁：[v0.1.0](https://github.com/jerrygskk/DualMirror/releases/tag/v0.1.0)。
+附件為 `DualMirror.exe`、`SHA256SUMS.txt`；發布說明使用本機忽略的 Markdown 檔，不入庫。
+中英文 README 已同步下載入口與最新操作說明；歷史建置紀錄如下，不代表目前產物。
+
+## 歷史：目錄整理後的實際建置（2026-11-12）
 
 架構整理與雙語 README 提交後，依維護者指示清除舊 `build/`、`dist/`，以正式 Python 3.12.10
 執行既有版本工具及 `packaging/DualMirror.spec`，使用 `--clean --noconfirm` 全新建置，未進版。
@@ -465,7 +486,7 @@ foreach ($directory in @('build', 'dist')) {
 
 | 版本 | 狀態 | 摘要 |
 | --- | --- | --- |
-| 0.1.0 | 開發中，未發布 | 初始比較／合併工具；原始碼已增補比較操作與顯示、自訂合併、語法及編碼選單。既有 EXE 未包含本輪更新。 |
+| 0.1.0 | 2026-11-12 首次發布 | 文字／資料夾／Hex 比較、多分頁、搜尋取代範圍、拖拉開檔及外部逐側更新；附 Windows onefile EXE。 |
 
 後續比照公文系統維護近期摘要與 [HISTORY.md](HISTORY.md)，不把開發日期冒充發布日期。
 

@@ -7,8 +7,8 @@
 Compare folders, text files, and binary files side by side. Inspect differences, edit text, and merge changes in a single window.
 Multiple comparisons open in tabs. Starting another comparison adds it to the existing window; reopening the same pair returns to its tab.
 
-Current version: **0.1.0, in development and not yet officially released.**
-Source code is available. There is no official release download yet.
+Current version: **0.1.0**.
+Download `DualMirror.exe` from the [GitHub Release](https://github.com/jerrygskk/DualMirror/releases/tag/v0.1.0). No separate Python installation is required.
 
 ## Features
 
@@ -20,7 +20,7 @@ Source code is available. There is no official release download yet.
 | Merging differences | Use arrows to copy entire difference blocks, or select complete lines and copy them to the other side. |
 | Binary comparison | Read-only hexadecimal views align insertions and deletions with gaps while preserving each side's original offsets. |
 | File operations | Copy to the other side or another folder, rename on one side, or move items to the Windows Recycle Bin. |
-| External change monitoring | Refresh clean tabs when files change. Preserve unsaved edits and check the on-disk version again before writing. |
+| External change monitoring | When returning to the window, confirm updates for the left and right sides separately. Update only approved sides and check the on-disk version again before writing. |
 | Windows 11 context menu integration | Compare two selected files or folders in File Explorer, or select the left item first and compare it with another item later. |
 
 ## Run from source
@@ -60,6 +60,19 @@ The `=` and `≠` symbols in the center indicate verified content results. A bla
 - Click a text line or drag across line numbers to select complete lines, then use the blue arrow to copy the selection.
 - Merging changes the in-memory content first. Files are written only when you save.
 - The language selector controls syntax highlighting. The encoding selector reinterprets the file and cannot be changed while either side has unsaved edits.
+- Find and replace offer Both sides, Left, and Right radio buttons in that order, with Both sides selected by default. Replacing all on both sides can be undone in one step.
+- Use the close button or `Esc` to hide find and replace without clearing your input.
+
+### Drag files into the window
+
+- Drop two files to open a comparison, using their drag order for the left and right sides. Existing pairs reuse their tabs.
+- Drop one file onto the left or right content pane of a text or Hex tab to replace that side. Unsaved changes require confirmation.
+- Dropping one file onto a toolbar, tab bar, or start screen does not replace anything. Folder drops are not supported.
+
+### External file changes
+
+When you return to the window, the application checks the files in the current tab. If both changed externally, it asks about the left side first, then the right.
+Only approved sides are updated. Declining suppresses repeated prompts for the same change. The confirmation warns when updating would discard unsaved edits on that side.
 
 | Shortcut | Action |
 | --- | --- |
