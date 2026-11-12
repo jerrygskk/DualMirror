@@ -4,7 +4,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from PySide6.QtCore import QCoreApplication
-from single_instance import InstanceChannel
+from lib.integration.single_instance import InstanceChannel
 
 app = QCoreApplication(sys.argv)
 channel = InstanceChannel(Path(sys.argv[1]))

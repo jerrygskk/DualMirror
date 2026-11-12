@@ -1,10 +1,11 @@
 """本工具自製線條圖示與緊湊工具列元件。"""
 from pathlib import Path
+from lib.paths import resource_path
 from PySide6.QtGui import QIcon, QColor
 from PySide6.QtWidgets import QToolButton, QFrame, QStyledItemDelegate, QStyleOptionViewItem, QStyle
 from PySide6.QtCore import Qt, QSize
 
-ASSETS = Path(__file__).parent / 'assets' / 'icons'
+ASSETS = resource_path('assets/icons')
 
 
 class FolderSelectionDelegate(QStyledItemDelegate):

@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
 from PySide6.QtCore import Qt
-from core import compare_paths
-from main import MainWindow
+from lib.core.core import compare_paths
+from lib.ui.main_window import MainWindow
 
 
 def same_metadata(left, right):
@@ -23,7 +23,7 @@ def test_quick_compare_never_reads_file_contents(tmp_path, monkeypatch):
 
 
 def test_detailed_compare_finds_same_metadata_different_content(tmp_path):
-    from core import verify_contents
+    from lib.core.core import verify_contents
     left, right = tmp_path / 'l', tmp_path / 'r'
     left.write_bytes(b'abc'); right.write_bytes(b'xyz')
     same_metadata(left, right)
@@ -33,7 +33,7 @@ def test_detailed_compare_finds_same_metadata_different_content(tmp_path):
 
 
 def test_sync_still_checks_content_even_when_metadata_matches(tmp_path):
-    from core import sync_plan, execute_plan
+    from lib.core.core import sync_plan, execute_plan
     left, right = tmp_path / 'l', tmp_path / 'r'
     left.write_bytes(b'abc'); right.write_bytes(b'xyz')
     same_metadata(left, right)
@@ -54,7 +54,7 @@ def test_detailed_compare_overrides_different_timestamps(tmp_path):
 
 
 def test_details_button_checks_selection_then_all(qtbot, tmp_path, monkeypatch):
-    from compare_options import CompareOptions
+    from lib.ui.compare_options import CompareOptions
     from PySide6.QtWidgets import QDialog
     monkeypatch.setattr(CompareOptions, 'exec', lambda self: QDialog.Accepted)
     monkeypatch.setattr(CompareOptions, 'options', lambda self: ('binary', (), False))

@@ -1,7 +1,7 @@
 import pytest
 from PySide6.QtCore import Qt, QPoint
 from PySide6.QtWidgets import QApplication, QDialog, QComboBox, QFontComboBox, QVBoxLayout
-from theme import APP_STYLE
+from lib.ui.theme import APP_STYLE
 
 
 @pytest.mark.parametrize('combo_type', [QComboBox, QFontComboBox])

@@ -1,21 +1,21 @@
 # -*- mode: python ; coding: utf-8 -*-
-"""依 PoliceDocSys／POS 公版移植的 onefile 設定；正式打包命令見 DEVELOPER.md。"""
+"""依 PoliceDocSys／POS 公版移植的 onefile 設定；正式打包命令見 docs/DEVELOPER.md。"""
 from pathlib import Path
 import sys
 
-root = Path(SPECPATH).resolve()
+root = Path(SPECPATH).resolve().parent
 sys.path.insert(0, str(root / 'tools'))
 from pyi_prune import prune, force_qt_binaries
 from bump_version import read_current, render_info
 
-info = root / 'version_info.txt'
+info = root / 'packaging' / 'version_info.txt'
 if not info.is_file() or info.read_text(encoding='utf-8') != render_info(read_current(root)):
     raise SystemExit('EXE 版本資訊缺少或不同步；請執行 python tools/bump_version.py --regenerate。')
 
 datas = [(str(root / 'assets' / 'icons'), 'assets/icons'),
          (str(root / 'assets' / 'DualMirror.svg'), 'assets'),
          (str(root / 'assets' / 'DualMirror.ico'), 'assets'),
-         (str(root / 'AppxManifest.xml'), '.')]
+         (str(root / 'shell' / 'AppxManifest.xml'), 'shell')]
 for name in ('manage.ps1', 'FileCompareShell.dll', 'CompareLauncher.exe', 'Logo.png', 'Logo44.png', 'Logo150.png', 'Compare.ico'):
     datas.append((str(root / 'shell' / name), 'shell'))
 for source, _ in datas:

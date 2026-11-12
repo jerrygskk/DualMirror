@@ -10,11 +10,11 @@
 ## 專案與接手入口
 
 - 正式名稱為 **DualMirror／雙鏡**，副標為「檔案比較與合併」，目前版號 **0.1.0（未發布）**。
-  名稱／版號唯一來源為 `version.py`，主視窗已接入；Shell 及設定識別已統一為 `DualMirror`。
+  名稱／版號唯一來源為 `lib/settings/version.py`，主視窗已接入；Shell 及設定識別已統一為 `DualMirror`。
 - Windows 桌面工具，Python 3.12＋PySide6；採左右比較流程與密集版面，
   文字內容區另參考 Notepad++，圖示由本專案自行產生。
-- 長期有效的設計、踩雷與操作說明看 `DEVELOPER.md`，入庫文件本身須足以接手。
-- 踩雷速查在 `PITFALLS.md`；開發紀錄及近期版本摘要在 `DEVELOPER.md`，歷史版本在 `HISTORY.md`。
+- 長期有效的設計、踩雷與操作說明看 `docs/DEVELOPER.md`，入庫文件本身須足以接手。
+- 踩雷速查在 `docs/PITFALLS.md`；開發紀錄及近期版本摘要在 `docs/DEVELOPER.md`，歷史版本在 `docs/HISTORY.md`。
 - 專案根目錄為 `D:\Git\DualMirror`，已從 Everything 搬成獨立資料夾。
   啟動、測試及工具指令均從本目錄執行，不依賴舊 Everything 目錄的程式或資源。
 - 全域協作規則由維護者設定提供；這裡只記專案差異。不要新增 `CLAUDE.md` 或 `CLAUDE.local.md`。
@@ -23,19 +23,21 @@
 
 | 檔案 | 職責 |
 | --- | --- |
-| `main.py` | 主視窗、左右資料樹、背景工作、分頁、監看與整合 |
-| `comparison_gutter.py` | 左右資料樹間獨立的內容結果窄區，兼作拖曳分隔 |
-| `folder_presentation.py` | 左右各側檔案色彩、資料夾子項目狀態及大小彙整 |
-| `core.py` | 快速／詳細比較、原始文字編碼、複製計畫及原子寫入 |
-| `text_compare.py` | 文字編輯、選取行與區塊合併、搜尋取代、復原及另存 |
-| `syntax_styles.py`、`text_encoding.py` | 語言樣式與語法上色、編碼選單及自動偵測 |
-| `binary_alignment.py` | 二進位內容對齊及顯示位置到原始位址的映射 |
-| `hex_compare.py` | 唯讀 Hex 模型、差異導覽、左側紅色總覽 |
-| `file_actions.py` | 單側重新命名及 Windows 資源回收筒操作 |
-| `compare_options.py`、`font_settings.py` | 比較選項與字型設定 |
-| `theme.py`、`ui_common.py` | PoliceDocSys 公版副本與本工具擴充 |
-| `ui_assets.py`、`assets/icons/` | 正式介面圖示及小型工具按鈕 |
-| `shell_integration.py`、`AppxManifest.xml`、`shell/` | Windows 11 第一層右鍵整合 |
+| `main.py`、`lib/application.py` | 啟動入口、應用程式初始化與跨程序請求接線 |
+| `lib/ui/main_window.py` | 主視窗、左右資料樹、背景工作、分頁、監看與整合 |
+| `lib/paths.py` | 原始碼與單一執行檔共用的資源定位 |
+| `lib/ui/comparison_gutter.py` | 左右資料樹間獨立的內容結果窄區，兼作拖曳分隔 |
+| `lib/ui/folder_presentation.py` | 左右各側檔案色彩、資料夾子項目狀態及大小彙整 |
+| `lib/core/core.py` | 快速／詳細比較、原始文字編碼、複製計畫及原子寫入 |
+| `lib/ui/text_compare.py` | 文字編輯、選取行與區塊合併、搜尋取代、復原及另存 |
+| `lib/ui/syntax_styles.py`、`lib/core/text_encoding.py` | 語言樣式與語法上色、編碼選單及自動偵測 |
+| `lib/core/binary_alignment.py` | 二進位內容對齊及顯示位置到原始位址的映射 |
+| `lib/ui/hex_compare.py` | 唯讀 Hex 模型、差異導覽、左側紅色總覽 |
+| `lib/core/file_actions.py` | 單側重新命名及 Windows 資源回收筒操作 |
+| `lib/ui/compare_options.py`、`lib/ui/font_settings.py` | 比較選項與字型設定 |
+| `lib/ui/theme.py`、`lib/ui/ui_common.py` | PoliceDocSys 公版副本與本工具擴充 |
+| `lib/ui/ui_assets.py`、`assets/icons/` | 正式介面圖示及小型工具按鈕 |
+| `lib/integration/shell_integration.py`、`shell/AppxManifest.xml`、`shell/` | Windows 11 第一層右鍵整合 |
 
 ## 已定案的操作
 
@@ -109,7 +111,7 @@
 
 - 正式圖示來源為 `tools/icon_design.py`，由 `tools/create_icons.py` 產生 `assets/icons/`
   及 Shell 圖示；不要只改產物，避免重新產生時還原。
-  `docs/icon-proposal/` 是歷史提案，不是執行期資源來源。
+  `docs/design/icon-proposal/` 是歷史提案，不是執行期資源來源。
 - 資料夾清單已定案採深鋼藍：單側檔名／方塊 `#285b83`，資料夾後層及複合色斜切區
   `#3977A7`、單色前層 `#79ACD2`；紅色維持原配色。反白底 `#DBECF9`，
   `FolderSelectionDelegate` 保留圖示及檔名原色，不套選取染色。圖示鍵名中的 purple 為既有狀態識別。
@@ -119,7 +121,7 @@
   勿把未選中的候選圖或原藍綠配色當成定案。
 - 字型設定及右鍵啟動設定已改為 `%LOCALAPPDATA%\DualMirror`；
   比較選項使用 `QSettings('DualMirror', 'CompareContents')`。
-  `app_settings.py` 保留舊字型檔，舊比較設定一次補入新位置缺少的欄位，不覆蓋新值。
+  `lib/settings/app_settings.py` 保留舊字型檔，舊比較設定一次補入新位置缺少的欄位，不覆蓋新值。
 - 「整合」選單提供獨立的「註冊右鍵整合」及「取消註冊右鍵整合」，不再用勾選切換。
   移除保留字型與比較設定；成功操作後通知檔案總管刷新關聯，不重新啟動檔案總管。
   不自行註冊、不變更開發人員模式。
@@ -132,13 +134,13 @@
   再註冊新目錄，失敗移除新註冊並恢復原目錄及記錄。
 - 使用者已要求移植打包設定，來源以 PoliceDocSys 公版為準；只帶通用 spec、瘦身與版本產生機制，
   不帶警用業務、機關署名、資料、發布流程或來源專案的 hidden imports。
-- 已移植 `DualMirror.spec`、`tools/pyi_prune.py`、`tools/bump_version.py`，
+- 已移植 `packaging/DualMirror.spec`、`tools/pyi_prune.py`、`tools/bump_version.py`，
   並建立 `requirements.txt`／`requirements-dev.txt` 實裝快照；環境基準 Python 3.12.10 x64。
   spec 為 onefile、無 UPX，圖示與必要資源明確列入；已實際建置 0.1.0 並驗證文字合併／儲存。
   打包過濾 Codex 工具環境的外來 ICU／CRT，避免覆蓋 Windows 系統 DLL；根因見 PITFALLS PKG-1。
   EXE 的右鍵註冊流程仍未實測，原始碼版已實測。
-  版號由維護者指定為 0.1.0，後續透過版本工具更新；`version_info.txt` 為生成檔不入庫，
-  新環境執行 `tools/bump_version.py --regenerate` 重建。正式打包命令只維護於 DEVELOPER.md。
+  版號由維護者指定為 0.1.0，後續透過版本工具更新；`packaging/version_info.txt` 為生成檔不入庫，
+  新環境執行 `tools/bump_version.py --regenerate` 重建。正式打包命令只維護於 docs/DEVELOPER.md。
 
 ## 驗證與試跑
 
@@ -162,7 +164,7 @@
   也不要為此新增永久刪除退路。Qt 原生 Shell 驗證見 `tests/native_probe.py`。
 - 產品 Python 相依包含 PySide6、Pygments（語法上色）與 charset-normalizer（編碼偵測），均已經維護者同意。
   PySide6 版本查詢需同時考慮 `PySide6` 與 `PySide6-Essentials` 發行名稱。
-- 2026-11-12 首次推送前完整測試 257 項通過，未排除測試。
+- 2026-11-12 目錄整理後完整測試 260 項通過，未排除測試。
   原子替換測試先前仍曾偶發 WinError 5，根因未查明；此次通過不表示已治本。
   最新原始碼尚未重包 EXE；開源程式碼來源比對因公開服務限流未完成，不得宣稱合規已通過。
 

@@ -1,6 +1,6 @@
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QTextCursor
-from text_compare import TextCompare
+from lib.ui.text_compare import TextCompare
 
 
 def test_insertions_use_hatched_gaps_and_red_text_separate_from_blank_rows(qtbot, tmp_path):

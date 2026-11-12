@@ -1,6 +1,6 @@
 """詳細比較選項，沿用全域樣式。"""
 from PySide6.QtCore import QSettings
-from app_settings import compare_settings
+from lib.settings.app_settings import compare_settings
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
     QRadioButton, QCheckBox, QDialogButtonBox, QGroupBox)
 

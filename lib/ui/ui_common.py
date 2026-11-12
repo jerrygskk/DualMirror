@@ -125,7 +125,7 @@ def loadUi(path):
 def icon_button(parent, title, standard_icon):
     """本工具的緊湊工具列：圖示、滑鼠提示與輔助使用名稱。"""
     from PySide6.QtWidgets import QStyle
-    from ui_assets import tool_button
+    from lib.ui.ui_assets import tool_button
     names = {
         QStyle.SP_BrowserReload: 'imgRefresh',
         QStyle.SP_FileDialogDetailedView: 'imgTextCompareSession',

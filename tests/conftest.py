@@ -5,8 +5,8 @@ from PySide6.QtCore import QSettings
 
 @pytest.fixture(autouse=True)
 def isolated_user_settings(tmp_path, monkeypatch):
-    import compare_options
-    from app_settings import migrate_compare_settings
+    import lib.ui.compare_options as compare_options
+    from lib.settings.app_settings import migrate_compare_settings
     monkeypatch.setenv('LOCALAPPDATA', str(tmp_path / 'appdata'))
     def settings():
         return migrate_compare_settings(

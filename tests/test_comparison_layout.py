@@ -1,8 +1,8 @@
 import os
 import pytest
 from PySide6.QtCore import Qt
-from main import MainWindow
-from text_compare import TextCompare
+from lib.ui.main_window import MainWindow
+from lib.ui.text_compare import TextCompare
 
 
 def test_main_toolbar_has_short_captions_below_icons_without_tooltips(qtbot):
@@ -21,7 +21,7 @@ def test_main_toolbar_has_short_captions_below_icons_without_tooltips(qtbot):
 
 @pytest.mark.parametrize('first_is_folder', [True, False], ids=['folder-first', 'file-first'])
 def test_cli_folder_pair_stays_on_folder_list(qtbot, tmp_path, monkeypatch, first_is_folder):
-    import main
+    import lib.ui.main_window as main
     left, right = tmp_path / 'left', tmp_path / 'right'
     for root in (left, right):
         root.mkdir()

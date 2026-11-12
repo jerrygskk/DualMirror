@@ -1,8 +1,8 @@
 from PySide6.QtCore import Qt, QTimer, QSettings
 from PySide6.QtWidgets import QApplication, QDialog, QInputDialog
-from main import MainWindow
-from core import compare_paths, verify_contents
-from compare_options import CompareOptions
+from lib.ui.main_window import MainWindow
+from lib.core.core import compare_paths, verify_contents
+from lib.ui.compare_options import CompareOptions
 
 
 def test_rule_and_crc_comparison(tmp_path):
@@ -68,8 +68,8 @@ def test_pre_post_compare_colors(qtbot, tmp_path):
 
 
 def test_delete_handler_uses_clicked_side_and_refreshes(qtbot, tmp_path, monkeypatch):
-    import file_actions
-    import main
+    import lib.core.file_actions as file_actions
+    import lib.ui.main_window as main
     left, right = tmp_path / 'left', tmp_path / 'right'
     left.mkdir(); right.mkdir()
     for root in (left, right): (root / 'a.txt').write_bytes(b'keep')

@@ -6,7 +6,7 @@ def test_fonts_copy_legacy_without_overwriting_new(tmp_path, monkeypatch):
     monkeypatch.setenv('LOCALAPPDATA', str(tmp_path))
     old = tmp_path / 'FileComparePython' / 'fonts.json'
     old.parent.mkdir(); old.write_text('{"tree":["Arial",12]}', encoding='utf-8')
-    from font_settings import FontSettings
+    from lib.ui.font_settings import FontSettings
     value = FontSettings()
     assert value.path == tmp_path / 'DualMirror' / 'fonts.json'
     assert value.tree == ('Arial', 12)
@@ -16,7 +16,7 @@ def test_fonts_copy_legacy_without_overwriting_new(tmp_path, monkeypatch):
 
 
 def test_compare_settings_fill_missing_once(tmp_path):
-    from app_settings import migrate_compare_settings
+    from lib.settings.app_settings import migrate_compare_settings
     old = QSettings(str(tmp_path / 'old.ini'), QSettings.IniFormat)
     new = QSettings(str(tmp_path / 'new.ini'), QSettings.IniFormat)
     old.setValue('method', 'rules'); old.setValue('case', True)

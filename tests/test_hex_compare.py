@@ -1,9 +1,9 @@
 from PySide6.QtCore import Qt
-from main import MainWindow
+from lib.ui.main_window import MainWindow
 
 
 def test_binary_opens_in_same_window_and_reuses_tab(qtbot, tmp_path, monkeypatch):
-    import main
+    import lib.ui.main_window as main
     monkeypatch.setattr(main, 'msgInfo', lambda *args: None)
     left, right = tmp_path / 'left.bin', tmp_path / 'right.bin'
     left.write_bytes(b'\0abc'); right.write_bytes(b'\0axc')
@@ -21,7 +21,7 @@ def test_binary_opens_in_same_window_and_reuses_tab(qtbot, tmp_path, monkeypatch
 
 
 def test_hex_missing_side_and_navigation(qtbot, tmp_path):
-    from hex_compare import HexCompare
+    from lib.ui.hex_compare import HexCompare
     left, right = tmp_path / 'left.bin', tmp_path / 'missing.bin'
     left.write_bytes(b'\x00ABC' + b'x' * 30)
     tab = HexCompare(left, right, documents=(left.read_bytes(), None))
@@ -36,14 +36,14 @@ def test_hex_missing_side_and_navigation(qtbot, tmp_path):
 
 
 def test_difference_ranges_include_extra_bytes():
-    from hex_compare import difference_ranges
+    from lib.ui.hex_compare import difference_ranges
     assert difference_ranges(b'abcd', b'axcde') == [(1, 2), (4, 5)]
     assert difference_ranges(b'', b'') == []
     assert difference_ranges(b'abc', b'abc') == []
 
 
 def test_hex_external_change_refreshes_open_tab(qtbot, tmp_path):
-    from hex_compare import HexCompare
+    from lib.ui.hex_compare import HexCompare
     left, right = tmp_path / 'left', tmp_path / 'right'
     left.mkdir(); right.mkdir()
     for root in (left, right): (root / 'a.bin').write_bytes(b'\0abc')
@@ -61,7 +61,7 @@ def test_hex_external_change_refreshes_open_tab(qtbot, tmp_path):
 
 
 def test_hex_is_readonly_and_navigation_wraps(qtbot, tmp_path):
-    from hex_compare import HexCompare
+    from lib.ui.hex_compare import HexCompare
     paths = (tmp_path / 'a', tmp_path / 'b')
     for path, data in zip(paths, (b'\0abc', b'\0xbz')): path.write_bytes(data)
     tab = HexCompare(*paths); qtbot.addWidget(tab)

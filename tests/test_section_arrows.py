@@ -1,12 +1,12 @@
 import pytest
 from PySide6.QtCore import QPoint, Qt
 from PySide6.QtGui import QColor
-from text_compare import TextCompare
+from lib.ui.text_compare import TextCompare
 
 
 @pytest.mark.parametrize('side', [0, 1], ids=['copy-right', 'copy-left'])
 def test_visible_section_arrow_has_full_size_and_wide_click_target(qtbot, tmp_path, monkeypatch, side):
-    import text_compare
+    import lib.ui.text_compare as text_compare
     monkeypatch.setattr(text_compare, 'confirmBox', lambda *args, **kwargs: True)
     left, right = tmp_path / 'left.txt', tmp_path / 'right.txt'
     left.write_bytes(b'head\nleft\ntail\n')

@@ -1,5 +1,5 @@
 import pytest
-from file_actions import selected_paths, rename_item
+from lib.core.file_actions import selected_paths, rename_item
 
 
 def test_selection_collapses_children_and_rejects_outside(tmp_path):

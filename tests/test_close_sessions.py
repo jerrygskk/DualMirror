@@ -1,5 +1,5 @@
 from PySide6.QtCore import Qt
-from main import MainWindow
+from lib.ui.main_window import MainWindow
 
 
 def load_pair(window, qtbot, tmp_path):
@@ -31,7 +31,7 @@ def test_closing_folder_session_returns_home_and_can_start_again(qtbot, tmp_path
 
 
 def test_text_tab_at_index_zero_still_closes_and_honors_unsaved_prompt(qtbot, tmp_path, monkeypatch):
-    import text_compare
+    import lib.ui.text_compare as text_compare
     window = MainWindow(); qtbot.addWidget(window); window.show()
     load_pair(window, qtbot, tmp_path)
     window.tree.setCurrentItem(window.tree.topLevelItem(0)); window.open_selected()

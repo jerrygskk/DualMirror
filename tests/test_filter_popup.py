@@ -1,6 +1,6 @@
 import pytest
 from PySide6.QtCore import QPoint, Qt
-from main import MainWindow
+from lib.ui.main_window import MainWindow
 
 
 @pytest.mark.parametrize('selected', [0, 3], ids=['first', 'lower'])

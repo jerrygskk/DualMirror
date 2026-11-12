@@ -1,8 +1,8 @@
 from pathlib import Path
 import pytest
 from PySide6.QtWidgets import QMenu
-import main
-import shell_integration
+import lib.ui.main_window as main
+import lib.integration.shell_integration as shell_integration
 
 
 def menu(window):

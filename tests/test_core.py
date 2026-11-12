@@ -1,7 +1,7 @@
 from pathlib import Path
 import codecs
 import pytest
-from core import compare_paths, TextFile, differences, merge_block, copy_checked, sync_plan, execute_plan
+from lib.core.core import compare_paths, TextFile, differences, merge_block, copy_checked, sync_plan, execute_plan
 
 
 def test_compare_same_size_different_content(tmp_path):
@@ -134,7 +134,7 @@ def test_ascii_pdf_is_not_offered_as_text(tmp_path):
 
 
 def test_copy_multiple_folders_keeps_sources_and_destination_extras(tmp_path):
-    from core import selection_plan
+    from lib.core.core import selection_plan
     source, target = tmp_path / 'source', tmp_path / 'target'
     (source / 'one' / 'empty').mkdir(parents=True)
     (source / 'two').mkdir()

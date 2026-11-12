@@ -1,7 +1,7 @@
 # DualMirror 開發文件
 
-目前產品版號：**0.1.0（未發布）**，唯一來源 `version.py`。
-協作說明見 [AGENTS.md](AGENTS.md)，踩雷速查見 [PITFALLS.md](PITFALLS.md)，
+目前產品版號：**0.1.0（未發布）**，唯一來源 `lib/settings/version.py`。
+協作說明見 [AGENTS.md](../AGENTS.md)，踩雷速查見 [PITFALLS.md](PITFALLS.md)，
 歷史版本見 [HISTORY.md](HISTORY.md)。不建立另一份 CLAUDE.md。
 
 專案工作目錄：`D:\Git\DualMirror`。啟動與測試不依賴原 Everything 資料夾。
@@ -9,10 +9,10 @@
 
 ## 2026-11-12 首次入庫前的最新狀態
 
-- `single_instance.py` 使用 QLockFile 保護同一帳號的啟動，再透過 QLocalServer／QLocalSocket 傳送比較請求。
+- `lib/integration/single_instance.py` 使用 QLockFile 保護同一帳號的啟動，再透過 QLocalServer／QLocalSocket 傳送比較請求。
   通訊端僅允許目前帳號使用；後續啟動傳送絕對路徑並等待接收確認，不建立第二個主視窗。
   Windows 後續程序授權既有程序取得前景；不帶路徑只喚回，最小化時恢復視窗。
-- `main.py` 的 `ComparisonSession` 保存每組資料夾比較；`MainWindow` 集中管理外層分頁及文字／Hex 內容。
+- `lib/ui/main_window.py` 的 `ComparisonSession` 保存每組資料夾比較；`MainWindow` 集中管理外層分頁及文字／Hex 內容。
   新請求保留既有資料夾狀態與未儲存內容，相同配對重用；Hex 背景載入完成時也統一檢查配對，避免重複新增。
   關閉資料夾分頁停止該頁監看，不關閉內容頁；內容頁由主視窗繼續監看。
 - 字型設定視窗介面採 11pt，欄位與上下箭頭放大後依維護者要求縮短垂直留白。
@@ -28,6 +28,36 @@
 - 版號仍為 0.1.0 未發布，未重包 EXE、未建立版本 tag 或 GitHub Release。
 
 ## 範圍與啟動
+
+### 目錄架構
+
+```text
+main.py                     單純啟動入口
+啟動.cmd                    Windows 啟動腳本
+lib/application.py          應用程式初始化
+lib/paths.py                原始碼與 frozen 資源定位
+lib/core/                   比較、編碼及檔案操作
+lib/ui/                     主視窗、內容分頁與共用介面
+lib/integration/            右鍵整合與單一視窗通訊
+lib/settings/               設定位置與產品名稱／版本
+assets/                     正式圖示及介面資源
+shell/                      原生右鍵元件、manifest 與註冊腳本
+packaging/                  onefile spec 與生成的版本資訊
+tools/                      圖示、版本、建置及公開檢查工具
+tests/                      回歸測試與隔離程序
+docs/                       技術文件、踩雷表及版本紀錄
+docs/design/                歷史圖示設計稿
+docs/plans/                 實作計畫
+```
+
+所有命令從專案根目錄執行；`main.py` 不再承載主視窗類別，測試與產品模組以正式套件路徑匯入。
+資源使用 `lib/paths.py` 定位，不依賴目前工作目錄；frozen 模式從單一執行檔解壓目錄取用。
+原始碼的 manifest 位於 `shell/AppxManifest.xml`；建立註冊用固定資源複本時，仍放在複本根目錄，
+原生 DLL 等檔案則放在該複本的 `shell/` 下，維持 Windows 註冊格式。
+`packaging/version_info.txt` 為忽略的生成檔；根目錄不保留舊模組或轉接副本。
+目錄整理後完整 260 項測試通過，含非目前目錄的資源定位、frozen 資源、版本工具與打包宣告。
+已用 Windows 可見視窗從其他工作目錄啟動，確認圖示、資料夾比較及第二次啟動的文字分頁；
+試跑使用暫存設定及檔案，程序已關閉。未重包 EXE，也未變更真實右鍵註冊。
 
 Python 3.12＋PySide6 桌面工具，提供左右比較、資料樹與分頁操作。
 文字區參考 Notepad++ 的行號欄、目前行、搜尋與狀態資訊；區塊操作支援復原／取消復原。
@@ -73,15 +103,16 @@ Python 3.12＋PySide6 桌面工具，提供左右比較、資料樹與分頁操�
 
 ### 模組
 
-- `core.py`：位元組比較、編碼辨識、差異區塊、預檢與原子寫入、批次複製計畫。
-- `main.py`：左右同步樹、分頁、篩選、精簡確認框與背景工作。
-- `folder_presentation.py`：各側檔案顏色、資料夾狀態及檔案大小向父層彙整。
-- `text_compare.py`：留白對齊、原始行號、差異總覽、字元標色、區塊複製、搜尋與復原。
-- `syntax_styles.py`：語言選單、自動辨識及 Pygments 到顯示 UTF-16 座標的上色映射。
-- `text_encoding.py`：編碼選單、BOM／無 BOM 偵測、嚴格解碼與編碼名稱。
-- `ui_assets.py`／`assets/icons/`：自製線條圖示與工具按鈕。
-- `theme.py`／`ui_common.py`：PoliceDocSys 公版副本；目前主程式採緊湊比較樣式。
-- `shell_integration.py`／`shell/`／`AppxManifest.xml`：Windows 11 第一層右鍵入口。
+- `lib/core/core.py`：位元組比較、編碼辨識、差異區塊、預檢與原子寫入、批次複製計畫。
+- `main.py`／`lib/application.py`：啟動入口及應用程式初始化。
+- `lib/ui/main_window.py`：左右同步樹、分頁、篩選、精簡確認框與背景工作。
+- `lib/ui/folder_presentation.py`：各側檔案顏色、資料夾狀態及檔案大小向父層彙整。
+- `lib/ui/text_compare.py`：留白對齊、原始行號、差異總覽、字元標色、區塊複製、搜尋與復原。
+- `lib/ui/syntax_styles.py`：語言選單、自動辨識及 Pygments 到顯示 UTF-16 座標的上色映射。
+- `lib/core/text_encoding.py`：編碼選單、BOM／無 BOM 偵測、嚴格解碼與編碼名稱。
+- `lib/ui/ui_assets.py`／`assets/icons/`：自製線條圖示與工具按鈕。
+- `lib/ui/theme.py`／`lib/ui/ui_common.py`：PoliceDocSys 公版副本；目前主程式採緊湊比較樣式。
+- `lib/integration/shell_integration.py`／`shell/`／`shell/AppxManifest.xml`：Windows 11 第一層右鍵入口。
 
 ## 已定案行為
 
@@ -98,7 +129,7 @@ Python 3.12＋PySide6 桌面工具，提供左右比較、資料樹與分頁操�
 - 初次載入、自動刷新與 F5 只比大小、修改時間，不讀取整批內容。`=?` 詳細比較選取項目及選取資料夾的子項目，
   未選取時比較全部；結果與 tooltip 區分「資訊相同／不同（未檢查內容）」及「內容相同／不同」。
 - 左右資料樹之間的獨立窄區顯示內容結果：黑色 `=`、紅色 `≠`；未驗證、單側及資料夾留白。
-  `comparison_gutter.py` 以自訂 QSplitterHandle 繪製，固定窄寬且保留分隔拖曳，
+  `lib/ui/comparison_gutter.py` 以自訂 QSplitterHandle 繪製，固定窄寬且保留分隔拖曳，
   使用左樹目前可見列的位置對齊，不依附表格欄位、水平捲動或選取底色。
   中央上移按鈕由啟用的外層容器承接滑鼠事件，即使按鈕停用也不向分隔條傳遞拖曳；
   按鈕區維持一般箭頭游標，只有下方內容結果區可左右拖曳。
@@ -160,13 +191,13 @@ IME 可能只改組字格式，卻通知整段文字移除／加入；原先直�
 再經 UTF-16 映射回 `self.texts`。比較用的 Qt 正規化快照與原文分離，避免 NBSP 等正規化損害資料。
 IME 提交另保留實際插入位置，避免在重複字元中誤把游標移到整串末端；仍不在修改回呼內重建 document。
 
-路徑下方的語言與編碼選單左右獨立。`syntax_styles.py` 使用 Pygments，提供純文字、Python、
+路徑下方的語言與編碼選單左右獨立。`lib/ui/syntax_styles.py` 使用 Pygments，提供純文字、Python、
 C、C++、C#、Java、JavaScript、TypeScript、HTML、CSS、JSON、XML、YAML、SQL、INI、Shell、
 PowerShell、批次檔與 Markdown，共 19 種。依副檔名優先，未知副檔名僅採足夠明確的內容判斷，
 無法確認則純文字。完整原文分詞後映射到對齊顯示，支援跨行語法及非 BMP 字元；只改文字色彩，
 不改比較規則、原文或字型。差異標示優先於語法色彩。所有列出樣式均有自動測試及可見視窗樣本驗證。
 
-`text_encoding.py` 提供自動偵測及 26 種明確編碼選項，涵蓋 UTF-8／16／32、BOM 與位元組順序、
+`lib/core/text_encoding.py` 提供自動偵測及 26 種明確編碼選項，涵蓋 UTF-8／16／32、BOM 與位元組順序、
 繁簡中文、日韓文、Windows 及 DOS 等字碼頁。先處理 BOM／嚴格 UTF-8，再使用 charset-normalizer；
 無 BOM Unicode 必須符合保守的零位元組規律，短二進位檔不因此直接當作文字。
 偵測不是確定判定，短文字及多種編碼皆可解讀的位元組仍可能有歧義，可手動指定。
@@ -216,7 +247,7 @@ Windows 11 的第一層右鍵需 `IExplorerCommand` 與套件識別，不能用�
 
 非文字檔雙擊後在同視窗開唯讀十六進位分頁。每列 16 位元組，顯示位址、十六進位與 ASCII；
 依內容對齊，差異位元組標紅、左右同步捲動，可跳上一個／下一個差異。
-`binary_alignment.py` 保存顯示區段與兩側原始位址；插入／刪除側以空白補位，
+`lib/core/binary_alignment.py` 保存顯示區段與兩側原始位址；插入／刪除側以空白補位，
 不把補位當成原始資料，位址欄及 tooltip 顯示該側真正位址。
 左側紅色總覽依整份比較位置壓縮，標出目前可見範圍，可點擊跳轉。
 對齊以共同前後綴、內容切塊錨點及標準庫 SequenceMatcher 細比建立；
@@ -254,7 +285,7 @@ Windows 11 的第一層右鍵需 `IExplorerCommand` 與套件識別，不能用�
 
 PowerShell 設 `PYTHONIOENCODING=utf-8`、`QT_QPA_PLATFORM=offscreen` 後執行：
 `python -m pytest tests -q --basetemp .tmp/test`。
-語法：`python -m compileall -q core.py main.py text_compare.py theme.py ui_common.py ui_assets.py shell_integration.py`。
+語法：`python -m compileall -q lib/core/core.py main.py lib/ui/text_compare.py lib/ui/theme.py lib/ui/ui_common.py lib/ui/ui_assets.py lib/integration/shell_integration.py`。
 
 `tests/native_probe.py` 由測試以獨立程序呼叫：用真實 Shell COM 選取陣列驗證 1／2／3 項與混合種類，
 並用暫存設定啟動暫存紀錄程式，確認兩個含中文／空白的路徑一次傳入；不註冊真實右鍵項目。
@@ -312,18 +343,18 @@ Python 路徑為 `C:\Users\user\AppData\Local\Programs\Python\Python312\python.e
 
 ## 打包設定與實際建置
 
-`DualMirror.spec` 參考 PoliceDocSys 的 Qt 瘦身及 POS 的 onefile 資源／版本宣告，
+`packaging/DualMirror.spec` 參考 PoliceDocSys 的 Qt 瘦身及 POS 的 onefile 資源／版本宣告，
 已移植成本專案副本，不跨專案 import，不帶來源業務、機關署名或發布流程。
 `tools/pyi_prune.py` 保留 QtUiTools 的連結期 DLL、SVG／ICO／Windows 平台外掛及 Python SSL。
 spec 收錄正式 `assets/` 圖示、manifest 與必要 Shell 檔案，排除開發套件及未使用的 QML 綁定。
 
-產品名稱與版本唯一來源為 `version.py`；由維護者決定版號後才執行：
+產品名稱與版本唯一來源為 `lib/settings/version.py`；由維護者決定版號後才執行：
 
 ```powershell
 & $python tools/bump_version.py 0.1.0
 ```
 
-`version_info.txt` 是生成檔，不入庫；新環境只要重建相同版本資訊即可，不必進版：
+`packaging/version_info.txt` 是生成檔，不入庫；新環境只要重建相同版本資訊即可，不必進版：
 
 ```powershell
 & $python tools/bump_version.py --regenerate
@@ -345,7 +376,7 @@ foreach ($directory in @('build', 'dist')) {
     if (Test-Path -LiteralPath $target) { Remove-Item -LiteralPath $target -Recurse -Force }
 }
 & $python tools/bump_version.py --regenerate
-& $python -m PyInstaller --clean --noconfirm DualMirror.spec
+& $python -m PyInstaller --clean --noconfirm packaging/DualMirror.spec
 ```
 
 預期主程式產物 `dist/DualMirror.exe`，onefile、無主控台、無 UPX。

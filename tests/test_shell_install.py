@@ -1,7 +1,7 @@
 from pathlib import Path
 import sys
 import pytest
-import shell_integration as integration
+import lib.integration.shell_integration as integration
 
 
 def test_prepare_fixed_resources_and_frozen_launch(tmp_path, monkeypatch):
@@ -29,7 +29,7 @@ def test_failed_install_restores_previous_launch_config(tmp_path, monkeypatch):
     with pytest.raises(RuntimeError, match='registration failed'): integration.install()
     assert config.read_bytes() == b'previous'
 def test_registration_transaction_is_not_killed_by_timeout(monkeypatch):
-    import shell_integration as integration
+    import lib.integration.shell_integration as integration
     from types import SimpleNamespace
 
     calls = []

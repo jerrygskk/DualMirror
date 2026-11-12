@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import subprocess
 import pytest
-from shell_integration import POWERSHELL, ROOT
+from lib.integration.shell_integration import POWERSHELL, ROOT
 
 
 @pytest.mark.parametrize('failure,previous', [('', False), ('', True), ('add', False), ('add', True), ('remove', False), ('remove', True), ('record', False)])

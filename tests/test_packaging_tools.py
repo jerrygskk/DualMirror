@@ -15,11 +15,12 @@ def load_tool(name):
 
 def test_version_tool_updates_only_temporary_copy_and_exe_metadata(tmp_path):
     tool = load_tool('bump_version')
-    (tmp_path / 'version.py').write_bytes(b'APP_NAME = "DualMirror"\r\n__version__ = "0.1.0"\r\n')
+    (tmp_path / 'lib/settings').mkdir(parents=True)
+    (tmp_path / 'lib/settings/version.py').write_bytes(b'APP_NAME = "DualMirror"\r\n__version__ = "0.1.0"\r\n')
     tool.update_version(tmp_path, '0.1.1')
-    assert (tmp_path / 'version.py').read_bytes() == b'APP_NAME = "DualMirror"\r\n__version__ = "0.1.1"\r\n'
+    assert (tmp_path / 'lib/settings/version.py').read_bytes() == b'APP_NAME = "DualMirror"\r\n__version__ = "0.1.1"\r\n'
     from PyInstaller.utils.win32.versioninfo import load_version_info_from_text_file
-    metadata = load_version_info_from_text_file(str(tmp_path / 'version_info.txt'))
+    metadata = load_version_info_from_text_file(str(tmp_path / 'packaging/version_info.txt'))
     assert (metadata.ffi.fileVersionMS, metadata.ffi.fileVersionLS) == (1, 65536)
     assert 'DualMirror.exe' in str(metadata)
     assert '0.1.1' in str(metadata)
@@ -31,21 +32,23 @@ def test_version_cli_runs_from_other_directory_on_temporary_copy(tmp_path):
     import sys
     (tmp_path / 'tools').mkdir()
     shutil.copyfile(ROOT / 'tools/bump_version.py', tmp_path / 'tools/bump_version.py')
-    shutil.copyfile(ROOT / 'version.py', tmp_path / 'version.py')
+    (tmp_path / 'lib/settings').mkdir(parents=True)
+    shutil.copyfile(ROOT / 'lib/settings/version.py', tmp_path / 'lib/settings/version.py')
     result = subprocess.run([sys.executable, str(tmp_path / 'tools/bump_version.py'), '0.2.0'],
                             cwd=tmp_path.parent, capture_output=True, timeout=10)
     assert result.returncode == 0, result.stderr
-    assert '__version__ = "0.2.0"' in (tmp_path / 'version.py').read_text(encoding='utf-8')
-    assert '0.2.0' in (tmp_path / 'version_info.txt').read_text(encoding='utf-8')
+    assert '__version__ = "0.2.0"' in (tmp_path / 'lib/settings/version.py').read_text(encoding='utf-8')
+    assert '0.2.0' in (tmp_path / 'packaging/version_info.txt').read_text(encoding='utf-8')
 
 
 @pytest.mark.parametrize('version', ['1', '1.2.3.4.5', '1.2.-1', '65536.0.0', 'bad'])
 def test_invalid_version_does_not_modify_files(tmp_path, version):
     tool = load_tool('bump_version')
-    path = tmp_path / 'version.py'; path.write_bytes(b'__version__ = "0.1.0"\n')
+    (tmp_path / 'lib/settings').mkdir(parents=True)
+    path = tmp_path / 'lib/settings/version.py'; path.write_bytes(b'__version__ = "0.1.0"\n')
     with pytest.raises(ValueError): tool.update_version(tmp_path, version)
     assert path.read_bytes() == b'__version__ = "0.1.0"\n'
-    assert not (tmp_path / 'version_info.txt').exists()
+    assert not (tmp_path / 'packaging/version_info.txt').exists()
 
 
 def test_prune_preserves_runtime_plugins_ssl_and_uitools_dependencies():
@@ -87,15 +90,17 @@ def test_spec_configuration_collects_real_resources_without_building(tmp_path):
     (tmp_path / 'tools').mkdir()
     for name in ('bump_version.py', 'pyi_prune.py'):
         shutil.copyfile(ROOT / 'tools' / name, tmp_path / 'tools' / name)
-    for name in ('version.py', 'main.py', 'AppxManifest.xml'):
+    (tmp_path / 'lib/settings').mkdir(parents=True)
+    (tmp_path / 'packaging').mkdir()
+    for name in ('lib/settings/version.py', 'main.py'):
         shutil.copyfile(ROOT / name, tmp_path / name)
     tool.update_version(tmp_path)
     import sys
     previous = list(sys.path)
     try:
         # 只擷取宣告，不建立 Analysis 或執行 EXE 打包。
-        namespace = runpy.run_path(str(ROOT / 'DualMirror.spec'), init_globals={
-            'SPECPATH': str(tmp_path), 'Analysis': lambda *a, **k: SimpleNamespace(binaries=[], datas=[], pure=[], scripts=[], config=k),
+        namespace = runpy.run_path(str(ROOT / 'packaging/DualMirror.spec'), init_globals={
+            'SPECPATH': str(tmp_path / 'packaging'), 'Analysis': lambda *a, **k: SimpleNamespace(binaries=[], datas=[], pure=[], scripts=[], config=k),
             'PYZ': lambda *a, **k: None, 'EXE': lambda *a, **k: k})
     finally:
         sys.path[:] = previous
@@ -103,13 +108,14 @@ def test_spec_configuration_collects_real_resources_without_building(tmp_path):
     assert exe['name'] == 'DualMirror' and not exe['upx'] and not exe['console']
     assert Path(exe['icon']).is_file()
     destinations = {target for source, target in config['datas']}
-    assert {'assets/icons', 'assets', 'shell', '.'} <= destinations
+    assert {'assets/icons', 'assets', 'shell'} <= destinations
+    assert (str(tmp_path / 'shell/AppxManifest.xml'), 'shell') in config['datas']
     for source, target in config['datas']: assert Path(source).exists()
     assert 'PySide6.QtUiTools' in config['hiddenimports']
 
 
 def test_main_window_uses_version_source_and_loads_selected_icon(qtbot, monkeypatch):
-    import main
+    import lib.ui.main_window as main
     monkeypatch.setattr(main, 'APP_NAME', '測試產品')
     monkeypatch.setattr(main, '__version__', '2.3.4')
     w = main.MainWindow(); qtbot.addWidget(w)

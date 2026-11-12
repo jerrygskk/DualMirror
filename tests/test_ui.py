@@ -1,7 +1,7 @@
 import os
 from PySide6.QtCore import Qt
-from text_compare import TextCompare
-from main import MainWindow
+from lib.ui.text_compare import TextCompare
+from lib.ui.main_window import MainWindow
 from PySide6.QtWidgets import QApplication, QDialog, QPushButton
 from PySide6.QtCore import QTimer
 
@@ -78,7 +78,7 @@ def test_real_sync_preview_and_execute(qtbot, tmp_path):
 
 
 def test_public_theme_has_readable_editor_background(qtbot, tmp_path):
-    from theme import APP_STYLE, apply_light_palette
+    from lib.ui.theme import APP_STYLE, apply_light_palette
     app = QApplication.instance()
     apply_light_palette(app); app.setStyleSheet(APP_STYLE)
     left, right = tmp_path / 'l', tmp_path / 'r'
@@ -92,7 +92,7 @@ def test_public_theme_has_readable_editor_background(qtbot, tmp_path):
 
 
 def test_merge_preserves_nonbreaking_space(qtbot, tmp_path, monkeypatch):
-    import text_compare
+    import lib.ui.text_compare as text_compare
     monkeypatch.setattr(text_compare, 'confirmBox', lambda *args, **kwargs: True)
     left, right = tmp_path / 'l', tmp_path / 'r'
     left.write_text('a\u00a0b\nnew\n', encoding='utf-8')
@@ -104,7 +104,7 @@ def test_merge_preserves_nonbreaking_space(qtbot, tmp_path, monkeypatch):
 
 
 def test_changed_source_blocks_text_merge(qtbot, tmp_path, monkeypatch):
-    import text_compare
+    import lib.ui.text_compare as text_compare
     monkeypatch.setattr(text_compare, 'msgCritical', lambda *args: None)
     left, right = tmp_path / 'l', tmp_path / 'r'
     left.write_bytes(b'new'); right.write_bytes(b'old')
@@ -128,7 +128,7 @@ def test_inserted_lines_align_matching_content(qtbot, tmp_path):
 
 
 def test_source_changed_after_merge_blocks_save(qtbot, tmp_path, monkeypatch):
-    import text_compare
+    import lib.ui.text_compare as text_compare
     monkeypatch.setattr(text_compare, 'msgCritical', lambda *args: None)
     monkeypatch.setattr(text_compare, 'confirmBox', lambda *args, **kwargs: True)
     left, right = tmp_path / 'l', tmp_path / 'r'
@@ -175,7 +175,7 @@ def test_file_comparison_opens_in_existing_window_tab(qtbot, tmp_path):
 
 
 def test_one_sided_text_opens_with_missing_side_disabled(qtbot, tmp_path, monkeypatch):
-    import main
+    import lib.ui.main_window as main
     monkeypatch.setattr(main, 'msgInfo', lambda *args, **kwargs: None)
     left, right = tmp_path / 'l', tmp_path / 'r'
     left.mkdir(); right.mkdir()

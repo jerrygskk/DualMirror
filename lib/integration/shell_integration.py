@@ -8,9 +8,10 @@ import hashlib
 import shutil
 import tempfile
 import ctypes
-from app_settings import data_folder
+from lib.settings.app_settings import data_folder
+from lib.paths import PROJECT_ROOT, resource_path
 
-ROOT = Path(__file__).resolve().parent
+ROOT = resource_path('')
 POWERSHELL = Path(os.environ.get('SystemRoot', r'C:\Windows')) / 'System32/WindowsPowerShell/v1.0/powershell.exe'
 
 
@@ -48,21 +49,25 @@ RESOURCES = ('AppxManifest.xml',) + tuple('shell/' + name for name in
     ('FileCompareShell.dll', 'CompareLauncher.exe', 'Logo.png', 'Logo44.png', 'Logo150.png', 'Compare.ico'))
 
 
+def resource_source(name):
+    return ROOT / ('shell/AppxManifest.xml' if name == 'AppxManifest.xml' else name)
+
+
 def prepare_resources():
     digest = hashlib.sha256()
     for name in RESOURCES:
-        digest.update(name.encode('utf-8')); digest.update((ROOT / name).read_bytes())
+        digest.update(name.encode('utf-8')); digest.update(resource_source(name).read_bytes())
     folder = data_folder() / 'shell'
     folder.mkdir(parents=True, exist_ok=True)
     target = folder / digest.hexdigest()[:20]
     if target.exists():
-        if all((target / name).read_bytes() == (ROOT / name).read_bytes() for name in RESOURCES):
+        if all((target / name).read_bytes() == resource_source(name).read_bytes() for name in RESOURCES):
             return target
         raise RuntimeError('固定位置的右鍵元件已被修改，請移除整合後檢查。')
     stage = Path(tempfile.mkdtemp(prefix='prepare-', dir=folder))
     try:
         (stage / 'shell').mkdir()
-        for name in RESOURCES: shutil.copyfile(ROOT / name, stage / name)
+        for name in RESOURCES: shutil.copyfile(resource_source(name), stage / name)
         stage.rename(target)
     finally:
         if stage.exists(): shutil.rmtree(stage)
@@ -74,7 +79,7 @@ def launch_configuration():
         return str(Path(sys.executable).resolve()) + '\n\n'
     python = Path(sys.executable).with_name('pythonw.exe')
     if not python.is_file(): raise RuntimeError('找不到目前 Python 的 pythonw.exe。')
-    return str(python) + '\n' + str(ROOT / 'main.py') + '\n'
+    return str(python) + '\n' + str(PROJECT_ROOT / 'main.py') + '\n'
 
 
 def install():

@@ -1,7 +1,7 @@
 from pathlib import Path
 import pytest
 
-from main import MainWindow
+from lib.ui.main_window import MainWindow
 
 
 def folders(tmp_path, prefix):
@@ -37,7 +37,7 @@ def test_second_folder_request_preserves_first_session(qtbot, tmp_path):
 
 
 def test_file_request_keeps_folder_and_unsaved_text(qtbot, tmp_path, monkeypatch):
-    import text_compare
+    import lib.ui.text_compare as text_compare
     window = MainWindow(); qtbot.addWidget(window)
     pair = folders(tmp_path, 'folder')
     window.open_startup_pair(pair)
@@ -94,7 +94,7 @@ def test_local_channel_delivers_unicode_pair_from_second_process(qtbot, tmp_path
     import os
     import subprocess
     import sys
-    from single_instance import InstanceChannel
+    from lib.integration.single_instance import InstanceChannel
     channel = InstanceChannel(tmp_path)
     assert channel.start() is True
     received = []
@@ -116,7 +116,7 @@ def test_local_channel_delivers_unicode_pair_from_second_process(qtbot, tmp_path
 
 
 def test_hex_request_reuses_tab_without_removing_folder(qtbot, tmp_path):
-    from hex_compare import HexCompare
+    from lib.ui.hex_compare import HexCompare
     window = MainWindow(); qtbot.addWidget(window)
     window.open_startup_pair(folders(tmp_path, 'first'))
     qtbot.waitUntil(lambda: not window.busy)
@@ -134,7 +134,7 @@ def test_hex_request_reuses_tab_without_removing_folder(qtbot, tmp_path):
 
 def test_incoming_hex_pair_during_background_open_does_not_duplicate(qtbot, tmp_path, monkeypatch):
     import threading
-    import main
+    import lib.ui.main_window as main
     pair = folders(tmp_path, 'folder')
     for folder in pair: (folder / 'binary.bin').write_bytes(b'\0abc')
     window = MainWindow(); qtbot.addWidget(window)

@@ -2,7 +2,7 @@
 setlocal
 set "DUALMIRROR_PYTHON=%LOCALAPPDATA%\Programs\Python\Python312\pythonw.exe"
 if not exist "%DUALMIRROR_PYTHON%" (
-  echo Python 3.12 was not found. See DEVELOPER.md for setup.
+  echo Python 3.12 was not found. See docs/DEVELOPER.md for setup.
   pause
   exit /b 2
 )

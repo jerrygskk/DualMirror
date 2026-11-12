@@ -4,9 +4,9 @@ from bisect import bisect_right
 from PySide6.QtCore import Qt, QAbstractTableModel, QModelIndex, Signal, QRect
 from PySide6.QtGui import QColor, QFont, QFontMetrics, QPainter
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTableView, QSplitter, QHeaderView
-from ui_assets import tool_button
-from binary_alignment import align_binary
-from core import pair_stamp
+from lib.ui.ui_assets import tool_button
+from lib.core.binary_alignment import align_binary
+from lib.core.core import pair_stamp
 
 
 def difference_ranges(left, right):

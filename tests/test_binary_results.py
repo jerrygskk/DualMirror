@@ -2,10 +2,10 @@ import os
 import random
 from pathlib import Path
 from PySide6.QtCore import Qt
-from core import compare_paths, verify_contents
-from hex_compare import HexCompare
-from main import MainWindow
-from comparison_gutter import content_result
+from lib.core.core import compare_paths, verify_contents
+from lib.ui.hex_compare import HexCompare
+from lib.ui.main_window import MainWindow
+from lib.ui.comparison_gutter import content_result
 
 
 def result_for(window, name):
@@ -26,7 +26,7 @@ def test_inserted_bytes_align_suffix_and_keep_real_addresses(qtbot, tmp_path):
 
 
 def test_large_binary_multiple_shifts_reconstruct_originals():
-    from binary_alignment import align_binary
+    from lib.core.binary_alignment import align_binary
     data = random.Random(1234).randbytes(20000)
     changed = data[:1500] + b'INSERT' + data[1500:12000] + data[12037:]
     layout = align_binary(data, changed)
@@ -46,7 +46,7 @@ def test_hex_overview_click_jumps_and_reload_updates_red_ranges(qtbot, tmp_path)
     assert w.overview.intervals()
     qtbot.mouseClick(w.overview, Qt.LeftButton, pos=w.overview.rect().center())
     assert w.views[0].verticalScrollBar().value() > 0
-    from hex_compare import load_binary_comparison
+    from lib.ui.hex_compare import load_binary_comparison
     baseline = w.disk_baseline
     right.write_bytes(data)
     w.apply_disk_update(load_binary_comparison((left, right)), baseline)
@@ -93,7 +93,7 @@ def test_open_hex_publishes_result_and_refresh_invalidates_it(qtbot, tmp_path):
 
 
 def test_alignment_empty_deleted_replaced_and_random_data_are_lossless():
-    from binary_alignment import align_binary
+    from lib.core.binary_alignment import align_binary
     samples = [(b'', b''), (b'', b'abc'), (b'abc', b''), (b'abcXYZdef', b'abcdef'),
                (b'abcdef', b'abcUVWdef'), (b'\0' * 8000, b'\0' * 3000 + b'X' + b'\0' * 5000)]
     rng = random.Random(19)

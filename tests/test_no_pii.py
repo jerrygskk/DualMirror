@@ -120,9 +120,9 @@ def test_ignore_rules_exclude_private_data_and_keep_required_sources(repo):
         'secret.key', 'browser-profile/Default/Cookies', 'fonts.json',
         'build/output.exe', 'dist/DualMirror.exe', 'version_info.txt',
         'fix_private.py', 'seed_private.py', 'data.xlsm']
-    allowed = ['main.py', 'DualMirror.spec', 'tools/check_no_pii.py',
+    allowed = ['main.py', 'packaging/DualMirror.spec', 'lib/core/core.py', 'tools/check_no_pii.py',
         'assets/DualMirror.ico', 'shell/CompareLauncher.exe', 'shell/FileCompareShell.dll',
-        'DEVELOPER.md', 'PITFALLS.md', 'docs/plan.md', '啟動.cmd']
+        'docs/DEVELOPER.md', 'docs/PITFALLS.md', 'docs/plans/initial-implementation.md', '啟動.cmd']
     for relative in excluded + allowed:
         result = subprocess.run(['git', '-C', str(repo), 'check-ignore', '--no-index', '--', relative],
                                 capture_output=True)

@@ -71,7 +71,7 @@ class TextFile:
 
     @classmethod
     def from_bytes(cls, path, raw, encoding=None):
-        from text_encoding import decode_text
+        from lib.core.text_encoding import decode_text
         result = decode_text(raw, encoding)
         if result is None: return None
         text, encoding = result

@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 from PySide6.QtCore import QPoint, Qt
-from main import MainWindow
+from lib.ui.main_window import MainWindow
 
 
 @pytest.mark.parametrize('sides', [(0,), (1,), (0, 1)], ids=['left', 'right', 'both'])

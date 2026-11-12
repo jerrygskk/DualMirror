@@ -21,7 +21,7 @@ def validate_version(version):
 
 
 def read_current(root=ROOT):
-    match = VERSION_PATTERN.search((Path(root) / 'version.py').read_text(encoding='utf-8'))
+    match = VERSION_PATTERN.search((Path(root) / 'lib/settings/version.py').read_text(encoding='utf-8'))
     if not match: raise ValueError('version.py 缺少 __version__。')
     validate_version(match.group(2))
     return match.group(2)
@@ -55,11 +55,13 @@ def update_version(root=ROOT, version=None):
     current = read_current(root)
     new = current if version is None else version.removeprefix('v')
     info = render_info(new)  # 先完整驗證，再寫入；保留原 version.py 換行。
-    path = root / 'version.py'
+    path = root / 'lib/settings/version.py'
     text = path.read_bytes().decode('utf-8')
     updated = VERSION_PATTERN.sub(lambda m: m.group(1) + new + m.group(3), text, count=1)
     if version is not None: path.write_bytes(updated.encode('utf-8'))
-    (root / 'version_info.txt').write_bytes(info.encode('utf-8'))
+    destination = root / 'packaging/version_info.txt'
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_bytes(info.encode('utf-8'))
     return new
 
 

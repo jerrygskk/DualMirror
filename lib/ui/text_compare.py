@@ -7,11 +7,11 @@ from PySide6.QtGui import QColor, QBrush, QRegion, QPainter, QTextCursor, QTextF
 from PySide6.QtWidgets import (QWidget, QPlainTextEdit, QTextEdit, QVBoxLayout,
                                QHBoxLayout, QLabel, QPushButton, QSplitter, QStyle, QLineEdit,
                                QApplication, QFileDialog, QMenu, QToolTip, QPlainTextDocumentLayout, QComboBox)
-from core import TextFile, differences, merge_block, fingerprint, atomic_write
-from ui_common import confirmBox, msgCritical, msgInfo, icon_button
-from syntax_styles import LANGUAGES, SyntaxHighlighter, detect_language
-from text_encoding import ENCODINGS, encoding_label
-from ui_assets import app_icon, tool_button, separator
+from lib.core.core import TextFile, differences, merge_block, fingerprint, atomic_write
+from lib.ui.ui_common import confirmBox, msgCritical, msgInfo, icon_button
+from lib.ui.syntax_styles import LANGUAGES, SyntaxHighlighter, detect_language
+from lib.core.text_encoding import ENCODINGS, encoding_label
+from lib.ui.ui_assets import app_icon, tool_button, separator
 
 
 class AlignedDocumentLayout(QPlainTextDocumentLayout):

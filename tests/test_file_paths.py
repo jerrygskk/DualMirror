@@ -1,7 +1,7 @@
 from pathlib import Path
 from PySide6.QtCore import Qt
-from main import MainWindow
-from text_compare import TextCompare
+from lib.ui.main_window import MainWindow
+from lib.ui.text_compare import TextCompare
 
 
 def setup_pair(qtbot, tmp_path):
@@ -33,8 +33,8 @@ def test_startup_and_enter_replace_only_requested_side(qtbot, tmp_path):
 
 
 def test_invalid_path_and_cancel_keep_dirty_content(qtbot, tmp_path, monkeypatch):
-    import main
-    import text_compare
+    import lib.ui.main_window as main
+    import lib.ui.text_compare as text_compare
     window, paths = setup_pair(qtbot, tmp_path)
     page = window.tabs.currentWidget()
     page.commit_text(0, 'unsaved\n')
@@ -53,7 +53,7 @@ def test_invalid_path_and_cancel_keep_dirty_content(qtbot, tmp_path, monkeypatch
 
 
 def test_browse_and_reuse_existing_pair(qtbot, tmp_path, monkeypatch):
-    import text_compare
+    import lib.ui.text_compare as text_compare
     window, paths = setup_pair(qtbot, tmp_path)
     first = window.tabs.currentWidget()
     window.open_file_pair((paths[0], paths[2]))

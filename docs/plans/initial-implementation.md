@@ -6,10 +6,10 @@
 介面複製 PoliceDocSys 公版；標準庫負責比較與寫入，不新增套件。
 
 ## 範圍與檔案
-- core.py：遞迴掃描、位元組比較、文字編碼與差異區塊、安全寫入、單向同步。
-- text_compare.py：左右文字、行號、差異標色、區塊複製與儲存。
+- lib/core/core.py：遞迴掃描、位元組比較、文字編碼與差異區塊、安全寫入、單向同步。
+- lib/ui/text_compare.py：左右文字、行號、差異標色、區塊複製與儲存。
 - main.py：左右路徑、資料夾比較表、篩選、同步預覽與背景工作。
-- theme.py / ui_common.py：來源公版副本；不修改其他專案。
+- lib/ui/theme.py / lib/ui/ui_common.py：來源公版副本；不修改其他專案。
 - tests/：全用暫存資料驗證真實讀寫。
 
 ## 執行步驟

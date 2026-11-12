@@ -1,7 +1,8 @@
 # Apple HIG 全域樣式表
-# arrow.svg 路徑在 main.py 啟動時動態替換（ARROW_PLACEHOLDER → 絕對路徑）
-# 打包後從 _MEIPASS 讀，開發時從當前目錄讀
+# 圖示以共用資源定位取得絕對路徑，不依賴工作目錄。
+# 打包後從解壓目錄讀取，開發時從專案資源目錄讀取。
 from pathlib import Path
+from lib.paths import resource_path
 
 # 可打字 QComboBox 提示文字／正常文字色（供 ui_utils.widgets.attachComboHint 使用）。
 # HINT_COLOR 與下方 QLineEdit::placeholder 同色，統一全專案的「提示灰」。
@@ -620,6 +621,6 @@ QDialog#fontSettingsDialog QSpinBox::up-button:pressed,
 QDialog#fontSettingsDialog QSpinBox::down-button:pressed { background: #cce8ff; }
 QDialog#fontSettingsDialog QPushButton:focus { border-color: #2377bb; }
 """
-APP_STYLE = APP_STYLE.replace('__COMBO_ARROW__', (Path(__file__).parent / 'assets' / 'icons' / 'comboArrow.svg').as_posix())
-APP_STYLE = APP_STYLE.replace('__SPIN_UP__', (Path(__file__).parent / 'assets' / 'icons' / 'imgSpinUp.svg').as_posix())
-APP_STYLE = APP_STYLE.replace('__SPIN_DOWN__', (Path(__file__).parent / 'assets' / 'icons' / 'imgSpinDown.svg').as_posix())
+APP_STYLE = APP_STYLE.replace('__COMBO_ARROW__', resource_path('assets/icons/comboArrow.svg').as_posix())
+APP_STYLE = APP_STYLE.replace('__SPIN_UP__', resource_path('assets/icons/imgSpinUp.svg').as_posix())
+APP_STYLE = APP_STYLE.replace('__SPIN_DOWN__', resource_path('assets/icons/imgSpinDown.svg').as_posix())

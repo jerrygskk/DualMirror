@@ -1,7 +1,7 @@
 import os
 from PySide6.QtCore import Qt
-from core import compare_paths, verify_contents
-from main import MainWindow
+from lib.core.core import compare_paths, verify_contents
+from lib.ui.main_window import MainWindow
 
 
 def samples(tmp_path):
@@ -26,7 +26,7 @@ def samples(tmp_path):
 
 
 def test_folder_icons_summarize_each_side_without_using_folder_dates(tmp_path):
-    from folder_presentation import summarize_folders
+    from lib.ui.folder_presentation import summarize_folders
     rows = compare_paths(*samples(tmp_path))
     styles, totals = summarize_folders(rows)
     assert styles['same'] == ('gray', 'gray')
@@ -56,7 +56,7 @@ def test_folder_names_and_metadata_remain_neutral_while_files_keep_status_colors
 
 
 def test_verified_equal_content_removes_newer_folder_hint(tmp_path):
-    from folder_presentation import summarize_folders
+    from lib.ui.folder_presentation import summarize_folders
     left, right = samples(tmp_path)
     (right / 'newer/file.txt').write_bytes(b'new')
     os.utime(right / 'newer/file.txt', ns=(1000000000, 1000000000))
@@ -65,7 +65,7 @@ def test_verified_equal_content_removes_newer_folder_hint(tmp_path):
 
 
 def test_mixed_folder_icons_render_both_colors(qapp):
-    from ui_assets import app_icon
+    from lib.ui.ui_assets import app_icon
     for style, colors in (('gray_purple', {'#d3d6da', '#3977a7'}),
                           ('red_purple', {'#f1b5af', '#3977a7'})):
         image = app_icon('imgFolder_' + style).pixmap(20, 20).toImage()

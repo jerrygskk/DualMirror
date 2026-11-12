@@ -1,7 +1,7 @@
 import codecs
 import pytest
-from core import TextFile
-from text_compare import TextCompare
+from lib.core.core import TextFile
+from lib.ui.text_compare import TextCompare
 from PySide6.QtGui import QTextCursor, QInputMethodEvent
 from PySide6.QtWidgets import QApplication
 
@@ -67,7 +67,7 @@ def test_every_language_detects_switches_and_colors_without_changing_bytes(qtbot
 
 
 def test_language_menu_is_exactly_the_languages_exercised(qtbot, tmp_path):
-    from syntax_styles import LANGUAGES
+    from lib.ui.syntax_styles import LANGUAGES
     assert {row[0] for row in LANGUAGES} == {row[0] for row in LANGUAGE_CASES}
 
 
@@ -96,7 +96,7 @@ def test_explicit_encoding_round_trip(tmp_path, encoding, text):
 
 
 def test_manual_decode_blocks_unsaved_edits_and_keeps_original_bytes(qtbot, tmp_path, monkeypatch):
-    import text_compare
+    import lib.ui.text_compare as text_compare
     messages = []
     monkeypatch.setattr(text_compare, 'msgInfo', lambda *args: messages.append(args))
     monkeypatch.setattr(text_compare, 'confirmBox', lambda *a, **k: True)
@@ -135,7 +135,7 @@ def test_automatic_multilingual_encoding_detection(tmp_path, encoding, text):
 
 
 def test_invalid_manual_decode_restores_selection_without_changing_text(qtbot, tmp_path, monkeypatch):
-    import text_compare
+    import lib.ui.text_compare as text_compare
     errors = []
     monkeypatch.setattr(text_compare, 'msgCritical', lambda *a: errors.append(a))
     left, right = tmp_path / 'left', tmp_path / 'right'

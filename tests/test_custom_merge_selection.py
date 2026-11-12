@@ -2,7 +2,7 @@ import pytest
 from PySide6.QtCore import QPoint, QPointF, Qt, QEvent
 from PySide6.QtGui import QMouseEvent
 from PySide6.QtWidgets import QApplication
-from text_compare import TextCompare
+from lib.ui.text_compare import TextCompare
 
 
 def row_point(editor, row, x=28):
@@ -13,7 +13,7 @@ def row_point(editor, row, x=28):
 
 @pytest.fixture
 def custom_window(qtbot, tmp_path, monkeypatch):
-    import text_compare
+    import lib.ui.text_compare as text_compare
     monkeypatch.setattr(text_compare, 'confirmBox', lambda *a, **k: True)
     paths = [tmp_path / 'left.txt', tmp_path / 'right.txt']
     paths[0].write_bytes(b'head\nA\nB\nC\ntail\n')

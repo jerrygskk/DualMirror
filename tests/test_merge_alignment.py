@@ -1,7 +1,7 @@
 from PySide6.QtGui import QFont
 from PySide6.QtCore import QPoint, Qt
-from core import differences
-from text_compare import TextCompare
+from lib.core.core import differences
+from lib.ui.text_compare import TextCompare
 import pytest
 
 
@@ -15,7 +15,7 @@ def test_matching_text_is_not_displaced_by_long_blank_runs():
 
 @pytest.mark.parametrize('source', [0, 1], ids=['left-to-right', 'right-to-left'])
 def test_merging_selected_line_does_not_recenter_view(qtbot, tmp_path, monkeypatch, source):
-    import text_compare
+    import lib.ui.text_compare as text_compare
     monkeypatch.setattr(text_compare, 'confirmBox', lambda *a, **k: True)
     paths = [tmp_path / 'left', tmp_path / 'right']
     head = ''.join(f'common {i}\n' for i in range(20))
@@ -41,7 +41,7 @@ def test_merging_selected_line_does_not_recenter_view(qtbot, tmp_path, monkeypat
 
 
 def test_partial_merge_keeps_chinese_blank_and_placeholder_rows_at_same_y(qtbot, tmp_path, monkeypatch):
-    import text_compare
+    import lib.ui.text_compare as text_compare
     monkeypatch.setattr(text_compare, 'confirmBox', lambda *a, **k: True)
     left, right = tmp_path / 'left', tmp_path / 'right'
     head = ''.join(f'第{i}行 中文 sample\n' for i in range(1, 20))

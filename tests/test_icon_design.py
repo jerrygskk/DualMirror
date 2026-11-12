@@ -1,4 +1,4 @@
-from main import MainWindow
+from lib.ui.main_window import MainWindow
 
 
 def test_both_browse_buttons_precede_path(qtbot):

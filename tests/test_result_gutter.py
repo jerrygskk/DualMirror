@@ -1,7 +1,7 @@
 from PySide6.QtCore import Qt, QPoint
 from PySide6.QtGui import QColor
-from core import compare_paths, verify_contents
-from main import MainWindow
+from lib.core.core import compare_paths, verify_contents
+from lib.ui.main_window import MainWindow
 from PySide6.QtWidgets import QHeaderView
 
 

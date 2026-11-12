@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QApplication
 
 
 def test_defaults_and_saved_fonts(tmp_path):
-    from font_settings import FontSettings
+    from lib.ui.font_settings import FontSettings
     settings = FontSettings(tmp_path / 'fonts.json')
     assert settings.tree == ('Microsoft JhengHei UI', 9)
     assert settings.content == ('Consolas', 10)
@@ -13,10 +13,10 @@ def test_defaults_and_saved_fonts(tmp_path):
 
 
 def test_fonts_apply_to_existing_and_new_comparison_tabs(qtbot, tmp_path):
-    from font_settings import FontSettings
-    from main import MainWindow
-    from hex_compare import HexCompare
-    from text_compare import TextCompare
+    from lib.ui.font_settings import FontSettings
+    from lib.ui.main_window import MainWindow
+    from lib.ui.hex_compare import HexCompare
+    from lib.ui.text_compare import TextCompare
     window = MainWindow(); qtbot.addWidget(window)
     settings = FontSettings(tmp_path / 'fonts.json')
     settings.tree = ('Arial', 11); settings.content = ('Consolas', 12)
@@ -35,7 +35,7 @@ def test_fonts_apply_to_existing_and_new_comparison_tabs(qtbot, tmp_path):
 
 
 def test_font_dialog_save_and_restore_defaults(qtbot, tmp_path):
-    from font_settings import FontSettings, FontDialog, DEFAULT_CONTENT, DEFAULT_TREE
+    from lib.ui.font_settings import FontSettings, FontDialog, DEFAULT_CONTENT, DEFAULT_TREE
     from PySide6.QtGui import QFont
     settings = FontSettings(tmp_path / 'fonts.json')
     dialog = FontDialog(settings); qtbot.addWidget(dialog)

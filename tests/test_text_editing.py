@@ -2,12 +2,12 @@ import codecs
 import pytest
 from PySide6.QtCore import Qt, QMimeData
 from PySide6.QtGui import QTextCursor, QInputMethodEvent
-from text_compare import TextCompare
+from lib.ui.text_compare import TextCompare
 
 
 @pytest.fixture
 def comparison(qtbot, tmp_path, monkeypatch):
-    import text_compare
+    import lib.ui.text_compare as text_compare
     monkeypatch.setattr(text_compare, 'confirmBox', lambda *a, **k: True)
     monkeypatch.setattr(text_compare, 'msgCritical', lambda *a, **k: None)
     left, right = tmp_path / 'left.txt', tmp_path / 'right.txt'
@@ -31,7 +31,7 @@ def select_rows(editor, first, end):
 @pytest.mark.parametrize('value', ['1', '中', '😀'], ids=['digit', 'cjk', 'non-bmp'])
 def test_ime_preedit_after_eof_insert_never_commits_alignment_newline(qtbot, tmp_path, monkeypatch, value):
     from PySide6.QtWidgets import QApplication
-    import text_compare
+    import lib.ui.text_compare as text_compare
     monkeypatch.setattr(text_compare, 'confirmBox', lambda *a, **k: True)
     left, right = tmp_path / 'left', tmp_path / 'right'
     for path in (left, right): path.write_bytes(b'last\r\n')
@@ -72,7 +72,7 @@ def test_typing_on_aligned_row_preserves_unicode_and_mixed_newlines(comparison, 
 @pytest.mark.parametrize('ime', [False, True], ids=['keyboard', 'ime'])
 def test_insert_between_repeated_characters_keeps_caret_at_insertion(qtbot, tmp_path, monkeypatch, ime):
     from PySide6.QtWidgets import QApplication
-    import text_compare
+    import lib.ui.text_compare as text_compare
     monkeypatch.setattr(text_compare, 'confirmBox', lambda *a, **k: True)
     paths = [tmp_path / 'left', tmp_path / 'right']
     for path in paths: path.write_bytes(b'1111\n')
@@ -144,7 +144,7 @@ def test_save_as_keeps_original_files_and_encoding(comparison, tmp_path):
 
 
 def test_save_as_preserves_utf16_big_endian(comparison, tmp_path):
-    from core import TextFile
+    from lib.core.core import TextFile
     w = comparison
     original = tmp_path / 'be.txt'
     original.write_bytes(codecs.BOM_UTF16_BE + '原文\r\n'.encode('utf-16-be'))
@@ -207,7 +207,7 @@ def test_replace_current_only_changes_one_occurrence(comparison):
 
 
 def test_save_as_rechecks_target_after_confirmation(comparison, tmp_path, monkeypatch):
-    import text_compare
+    import lib.ui.text_compare as text_compare
     target = tmp_path / 'existing.txt'
     target.write_bytes(b'old')
     def concurrent_change(*a, **k):
@@ -219,7 +219,7 @@ def test_save_as_rechecks_target_after_confirmation(comparison, tmp_path, monkey
 
 
 def test_save_as_encoding_failure_keeps_target(comparison, tmp_path):
-    from core import TextFile
+    from lib.core.core import TextFile
     w = comparison
     original = tmp_path / 'big5.txt'
     original.write_bytes('原文'.encode('cp950'))
@@ -254,8 +254,8 @@ def test_missing_side_cannot_be_edited_or_saved(qtbot, tmp_path):
 
 
 def test_main_window_edit_merge_replace_save_workflow(qtbot, tmp_path, monkeypatch):
-    from main import MainWindow
-    import text_compare
+    from lib.ui.main_window import MainWindow
+    import lib.ui.text_compare as text_compare
     monkeypatch.setattr(text_compare, 'confirmBox', lambda *a, **k: True)
     left, right = tmp_path / 'l.txt', tmp_path / 'r.txt'
     left.write_bytes(b'head\r\nnew\r\ntail\r\n')

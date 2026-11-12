@@ -2,7 +2,7 @@
 import json
 import os
 from pathlib import Path
-from app_settings import font_settings_path
+from lib.settings.app_settings import font_settings_path
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QFormLayout, QGroupBox,
     QFontComboBox, QSpinBox, QDialogButtonBox, QPushButton)
