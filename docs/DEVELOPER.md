@@ -7,6 +7,21 @@
 專案工作目錄：`D:\Git\DualMirror`。啟動與測試不依賴原 Everything 資料夾。
 `啟動.cmd` 比照 CryptoAna，以 `start` 呼叫正式 Python 3.12 的 `pythonw.exe`；CMD 隨即結束，主程式繼續執行。
 
+## 目錄整理後的實際建置（2026-11-12）
+
+架構整理與雙語 README 提交後，依維護者指示清除舊 `build/`、`dist/`，以正式 Python 3.12.10
+執行既有版本工具及 `packaging/DualMirror.spec`，使用 `--clean --noconfirm` 全新建置，未進版。
+產物為 `dist/DualMirror.exe`，onefile、無 UPX，產品版本 **0.1.0**，大小 **33,209,473 位元組**。
+英文首頁 `README.md` 與繁體中文 `README.zh-TW.md` 已互相連結。
+
+已檢查封裝中的主圖示、上下箭頭、QtNetwork、Shell manifest、註冊腳本及原生元件存在。
+以隔離設定與暫存樣本，從其他工作目錄實際開啟 EXE，驗證資料夾比較、第二次啟動加入文字分頁、
+相同配對重用及唯讀 Hex 分頁；第二次啟動的程序正常退出。
+實際點選差異區塊合併並儲存後，左右檔案位元組一致，UTF-8 BOM 與 CRLF 保留。
+試跑程序已關閉，未改動使用者原有視窗、設定或真實右鍵註冊；封裝版右鍵註冊流程仍未實測。
+完整原始碼回歸測試為 260 項通過，實際打包驗證不以模擬 spec 測試代替。
+本輪未推送、未建立 tag 或 GitHub Release。
+
 ## 2026-11-12 首次入庫前的最新狀態
 
 - `lib/integration/single_instance.py` 使用 QLockFile 保護同一帳號的啟動，再透過 QLocalServer／QLocalSocket 傳送比較請求。
@@ -57,7 +72,7 @@ docs/plans/                 實作計畫
 `packaging/version_info.txt` 為忽略的生成檔；根目錄不保留舊模組或轉接副本。
 目錄整理後完整 260 項測試通過，含非目前目錄的資源定位、frozen 資源、版本工具與打包宣告。
 已用 Windows 可見視窗從其他工作目錄啟動，確認圖示、資料夾比較及第二次啟動的文字分頁；
-試跑使用暫存設定及檔案，程序已關閉。未重包 EXE，也未變更真實右鍵註冊。
+試跑使用暫存設定及檔案，程序已關閉；未變更真實右鍵註冊。封裝版的後續驗證見「目錄整理後的實際建置」。
 
 Python 3.12＋PySide6 桌面工具，提供左右比較、資料樹與分頁操作。
 文字區參考 Notepad++ 的行號欄、目前行、搜尋與狀態資訊；區塊操作支援復原／取消復原。
