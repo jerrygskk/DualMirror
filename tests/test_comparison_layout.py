@@ -219,7 +219,8 @@ def test_external_atomic_replacements_keep_watching(qtbot, tmp_path):
     window.close()
 
 
-def test_external_change_updates_clean_text_tab(qtbot, tmp_path):
+def test_external_change_updates_clean_text_tab(qtbot, tmp_path, monkeypatch):
+    monkeypatch.setattr('lib.ui.external_reload.confirmBox', lambda *a, **k: True)
     left, right = tmp_path / 'l', tmp_path / 'r'
     left.mkdir(); right.mkdir()
     for path in (left / 'x.txt', right / 'x.txt'): path.write_bytes(b'old')
@@ -229,6 +230,7 @@ def test_external_change_updates_clean_text_tab(qtbot, tmp_path):
     window.tree.setCurrentItem(window.tree.topLevelItem(0)); window.open_selected(); qtbot.waitUntil(lambda: not window.busy)
     text = window.tabs.currentWidget()
     (right / 'x.txt').write_bytes(b'changed')
+    window.external_reload.request()
     qtbot.waitUntil(lambda: text.texts[1] == 'changed' and not window.busy, timeout=10000)
     assert text.dirty == [False, False]
     window.close()

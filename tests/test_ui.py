@@ -215,7 +215,8 @@ def test_missing_left_is_disabled_and_cannot_overwrite_right(qtbot, tmp_path):
     window.close()
 
 
-def test_missing_side_becomes_available_after_file_created(qtbot, tmp_path):
+def test_missing_side_becomes_available_after_file_created(qtbot, tmp_path, monkeypatch):
+    monkeypatch.setattr('lib.ui.external_reload.confirmBox', lambda *a, **k: True)
     left, right = tmp_path / 'l', tmp_path / 'r'
     left.mkdir(); right.mkdir()
     (left / 'only.txt').write_bytes(b'left')
@@ -226,9 +227,11 @@ def test_missing_side_becomes_available_after_file_created(qtbot, tmp_path):
     comparison = window.tabs.currentWidget()
     assert not comparison.right_edit.isEnabled()
     (right / 'only.txt').write_bytes(b'right')
+    window.external_reload.request()
     qtbot.waitUntil(lambda: comparison.right_edit.isEnabled() and not window.busy, timeout=10000)
     assert comparison.texts == ['left', 'right']
     (right / 'only.txt').unlink()
+    window.external_reload.request()
     qtbot.waitUntil(lambda: not comparison.right_edit.isEnabled() and not window.busy, timeout=10000)
     assert comparison.texts == ['left', '']
     window.close()

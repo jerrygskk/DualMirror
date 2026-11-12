@@ -56,7 +56,8 @@ def test_file_request_keeps_folder_and_unsaved_text(qtbot, tmp_path, monkeypatch
     window.close()
 
 
-def test_extra_folder_opens_shared_content_and_routes_menu(qtbot, tmp_path):
+def test_extra_folder_opens_shared_content_and_routes_menu(qtbot, tmp_path, monkeypatch):
+    monkeypatch.setattr('lib.ui.external_reload.confirmBox', lambda *a, **k: True)
     window = MainWindow(); qtbot.addWidget(window); window.show()
     window.open_startup_pair(folders(tmp_path, 'first')); qtbot.waitUntil(lambda: not window.busy)
     qtbot.waitUntil(lambda: not window.busy)
@@ -84,6 +85,7 @@ def test_extra_folder_opens_shared_content_and_routes_menu(qtbot, tmp_path):
     window.close_tab(window.tabs.indexOf(window.folder_tab))
     assert str(pair[0] / 'sample.txt') in window.watcher.files()
     (pair[0] / 'sample.txt').write_text('external update', encoding='utf-8')
+    window.external_reload.request()
     qtbot.waitUntil(lambda: page.texts[0] == 'external update', timeout=5000)
     qtbot.waitUntil(lambda: not window.busy and not session.busy)
     window.close()

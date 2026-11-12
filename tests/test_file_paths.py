@@ -55,6 +55,7 @@ def test_invalid_path_and_cancel_keep_dirty_content(qtbot, tmp_path, monkeypatch
 
 
 def test_browse_and_reuse_existing_pair(qtbot, tmp_path, monkeypatch):
+    monkeypatch.setattr('lib.ui.external_reload.confirmBox', lambda *a, **k: True)
     import lib.ui.text_compare as text_compare
     window, paths = setup_pair(qtbot, tmp_path)
     first = window.tabs.currentWidget()
@@ -65,7 +66,8 @@ def test_browse_and_reuse_existing_pair(qtbot, tmp_path, monkeypatch):
     assert window.tabs.count() == 1
     assert window.tabs.currentWidget() is second
     paths[2].write_text('updated\n', encoding='utf-8')
+    window.external_reload.request()
     window.refresh_if_ready()
-    qtbot.waitUntil(lambda: not window.busy)
+    qtbot.waitUntil(lambda: not window.busy and window.external_reload.idle)
     assert second.texts[1] == 'updated\n'
     window.close()

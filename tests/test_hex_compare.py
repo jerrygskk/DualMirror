@@ -42,7 +42,8 @@ def test_difference_ranges_include_extra_bytes():
     assert difference_ranges(b'abc', b'abc') == []
 
 
-def test_hex_external_change_refreshes_open_tab(qtbot, tmp_path):
+def test_hex_external_change_refreshes_open_tab(qtbot, tmp_path, monkeypatch):
+    monkeypatch.setattr('lib.ui.external_reload.confirmBox', lambda *a, **k: True)
     from lib.ui.hex_compare import HexCompare
     left, right = tmp_path / 'left', tmp_path / 'right'
     left.mkdir(); right.mkdir()
@@ -54,6 +55,7 @@ def test_hex_external_change_refreshes_open_tab(qtbot, tmp_path):
     qtbot.waitUntil(lambda: not window.busy)
     tab = window.tabs.currentWidget(); assert isinstance(tab, HexCompare)
     (right / 'a.bin').write_bytes(b'\0axc!')
+    window.external_reload.request()
     qtbot.waitUntil(lambda: not window.busy and tab.blocks == [(2, 3), (4, 5)], timeout=10000)
     assert tab.models[1].data(tab.models[1].index(0, 3), Qt.ForegroundRole).name() == '#d00000'
     assert tab.models[1].data(tab.models[1].index(0, 2), Qt.ForegroundRole).name() == '#111111'

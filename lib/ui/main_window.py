@@ -314,6 +314,7 @@ class ComparisonSession(QMainWindow):
         self.update_controls()
         if self._refresh_pending: self.refresh_timer.start(0)
         self.process_file_requests()
+        if hasattr(self, 'external_reload'): self.external_reload.timer.start(0)
 
     def request_refresh(self, *_):
         if self._closing: return
@@ -332,22 +333,7 @@ class ComparisonSession(QMainWindow):
         if self.busy or self._confirmation_active or self._closing: return
         self._refresh_pending = False
         if not all(self.paths()):
-            clean = [(window, window.file_pair, window.disk_baseline)
-                     for window in self.windows if not any(window.dirty)]
-            if not clean: return
-            def operation():
-                result = []
-                for window, pair, baseline in clean:
-                    try:
-                        updated = load_binary_comparison(pair) if isinstance(window, HexCompare) else [TextFile.load(path) if path.exists() else None for path in pair]
-                    except (OSError, ValueError): updated = None
-                    result.append((window, updated, baseline))
-                return result
-            def complete(result):
-                for window, updated, baseline in result:
-                    if window in self.windows: window.apply_disk_update(updated, baseline)
-                self.update_watches()
-            self.run_job(operation, complete)
+            self.update_watches()
             return
         try:
             roots(*self.paths())
@@ -385,8 +371,6 @@ class ComparisonSession(QMainWindow):
         expanded = {name for name, pair in self.item_pairs.items() if pair[0].isExpanded()}
         selected = {row.relative for row in self.selected()}
         scroll = self.tree.verticalScrollBar().value()
-        clean_windows = [(window, window.file_pair, window.disk_baseline)
-                         for window in self.windows if not any(window.dirty)]
         verified = {(row.left.resolve(), row.right.resolve()): row for row in self.rows if row.verified}
         content_epoch = self._content_epoch
         self.summary.setText('正在快速比較大小與修改時間…')
@@ -396,20 +380,12 @@ class ComparisonSession(QMainWindow):
             if self.auto_open_files and all(Path(path).is_file() for path in paths):
                 candidates = [TextFile.load(path) for path in paths]
                 if all(doc is not None for doc in candidates): documents = candidates
-            reloads = []
-            for window, pair, baseline in clean_windows:
-                try:
-                    if isinstance(window, HexCompare):
-                        updated = load_binary_comparison(pair)
-                    else: updated = [TextFile.load(path) if path.exists() else None for path in pair]
-                except OSError: updated = None
-                reloads.append((window, updated, baseline))
-            return rows, documents, reloads
+            return rows, documents
         def complete(result):
             if paths != self.paths():
                 self.request_refresh()
                 return
-            rows, self.pending_documents, reloads = result
+            rows, self.pending_documents = result
             if content_epoch == self._content_epoch:
                 for index, row in enumerate(rows):
                     previous = verified.get((row.left.resolve(), row.right.resolve()))
@@ -426,8 +402,6 @@ class ComparisonSession(QMainWindow):
             self.right_tree.verticalScrollBar().setValue(scroll)
             self._syncing_tree = False
             self.update_watches()
-            for window, updated, baseline in reloads:
-                if window in self.windows: window.apply_disk_update(updated, baseline)
         self.run_job(operation, complete)
         if self.auto_open_files: self.workers[-1].finished.connect(self.open_auto_pair)
 
@@ -1083,6 +1057,8 @@ class MainWindow(ComparisonSession):
         self.folder_sessions.append(self)
         from lib.ui.file_drop import FileDropFilter
         self.file_drop_filter = FileDropFilter(self)
+        from lib.ui.external_reload import ExternalReload
+        self.external_reload = ExternalReload(self)
 
     def command_target(self):
         current = self.tabs.currentWidget()

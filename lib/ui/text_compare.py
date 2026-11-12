@@ -730,25 +730,19 @@ class TextCompare(QWidget):
                 self.commit_text(side, text[:a] + replacement + text[b:], a + len(replacement))
                 self.find_next()
 
-    def apply_disk_update(self, documents, baseline):
-        if any(self.dirty) or self.disk_baseline != baseline: return
-        if documents is None or any(doc is None and path.exists() for doc, path in zip(documents, self.file_paths)):
-            self.summary.setText('磁碟檔案格式變更或無法讀取，請重新開啟比較')
-            return
-        if self.disk_baseline == tuple(doc.original if doc is not None else None for doc in documents): return
-        try:
-            detected_labels = [encoding_label(doc) if doc is not None else '' for doc in documents]
-            documents = [TextFile.from_bytes(path, doc.original, codec) if doc is not None and codec else doc
-                         for path, doc, codec in zip(self.file_paths, documents, self.encoding_overrides)]
-            if any(doc is None and path.exists() for doc, path in zip(documents, self.file_paths)):
-                raise UnicodeError('外部變更無法使用指定編碼讀取。')
-        except UnicodeError as error:
-            self.summary.setText(str(error))
-            return
-        self.docs = documents
-        self.detected_encoding_labels = detected_labels
-        self.texts = [doc.text if doc is not None else '' for doc in documents]
-        self.undo_stack.clear(); self.redo_stack.clear()
+    def apply_side_updates(self, documents, sides):
+        for side in sides:
+            doc = documents[side]
+            self.docs[side] = doc
+            self.texts[side] = doc.text if doc is not None else ''
+            self.detected_encoding_labels[side] = encoding_label(doc) if doc is not None else ''
+        for stack in (self.undo_stack, self.redo_stack):
+            updated = []
+            for snapshot in stack:
+                snapshot = tuple(self.texts[side] if side in sides else text for side, text in enumerate(snapshot))
+                if not updated or snapshot != updated[-1]: updated.append(snapshot)
+            while updated and updated[-1] == tuple(self.texts): updated.pop()
+            stack[:] = updated
         self.refresh()
 
     def update_positions(self):
