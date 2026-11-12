@@ -40,8 +40,8 @@
 
 以下是來源專案已驗證的相依限制；本工具的實際建置與試跑結果記於 DEVELOPER.md。
 
-- `lib/ui/ui_common.py` 仍 import QtUiTools；即使沒有使用 OpenGL 畫面，它的連結期相依
-  `Qt6OpenGL.dll`／`Qt6OpenGLWidgets.dll` 仍須收進來。
+- 原先公版載入 UI 檔的未使用方法會引入 QtUiTools 及 OpenGL 連結期相依。
+  現已移除該方法與未使用的資料庫錯誤處理，不再強制收錄這組 DLL；日後若重新引入須重查相依。
 - PATH 上 Git for Windows 的 OpenSSL 可能被混入；只剔除來源為 Git 的那份，
   保留 Python 自己的 `_ssl`、`_hashlib`、`libssl`、`libcrypto`。
 - `qwindows`、`qsvg`、`qsvgicon`、`qico` 及輸入法相關資源不能因瘦身而誤刪。

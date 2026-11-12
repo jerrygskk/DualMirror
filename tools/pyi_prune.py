@@ -1,9 +1,8 @@
 """移植自 PoliceDocSys tools/pyi_prune.py，Git DLL 過濾亦參考 POS.spec。
 
 只排除本工具不使用的 Qt Quick／QML、部分影像外掛及非繁中語系。
-保留 Python OpenSSL、雜湊、Qt 輸入法與 QtUiTools 的連結期相依。
+保留 Python OpenSSL、雜湊與 Qt 必要平台、圖示及輸入法資源。
 """
-from pathlib import Path
 
 _DROP_NAMES = {
     'opengl32sw.dll', 'qt6quick.dll', 'qt6quickwidgets.dll', 'qt6qml.dll',
@@ -13,18 +12,6 @@ _DROP_NAMES = {
 }
 _DROP_PREFIXES = ('pyside6/qml/', 'pyside6/plugins/qmltooling/', 'pyside6/plugins/virtualkeyboard/')
 _GIT_DIRS = ('/program files/git/', '/program files (x86)/git/')
-
-
-def force_qt_binaries():
-    """QtUiTools 仍在 ui_common 載入；其兩個連結期 DLL 不能隨綁定層排除。"""
-    import PySide6
-    root = Path(PySide6.__file__).parent
-    result = []
-    for name in ('Qt6OpenGL.dll', 'Qt6OpenGLWidgets.dll'):
-        path = root / name
-        if not path.is_file(): raise FileNotFoundError(f'缺少 QtUiTools 必要 DLL：{path}')
-        result.append((str(path), 'PySide6'))
-    return result
 
 
 def _drop(dest, source):

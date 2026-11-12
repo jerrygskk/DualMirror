@@ -1,13 +1,10 @@
-# ui_utils/ui_common.py
-# 通用 UI 元件：Dialog 按鈕樣式常數、訊息／確認彈窗、.ui 載入。
-# 原本散在 lib/db_utils.py，與資料庫邏輯混雜；集中到此，db_utils 回歸純資料層。
+# 通用 UI 元件：按鈕樣式常數、訊息及確認彈窗與工具列按鈕。
 # 只依賴 PySide6，不 import 專案其他模組（避免循環匯入）。
 
 import html as _html
 
 from PySide6.QtWidgets import QMessageBox, QSpacerItem, QSizePolicy, QGridLayout
-from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import QFile, Qt
+from PySide6.QtCore import Qt
 
 
 # ── Dialog 按鈕樣式常數 ───────────────────────────────────────
@@ -36,21 +33,6 @@ def msgWarning(title, text, parent=None):
 
 def msgCritical(title, text, parent=None):
     _makeMsg(QMessageBox.Critical, title, text, parent)
-
-
-def reportError(title, exc, parent=None):
-    """except 區塊統一錯誤處理：寫 error.log（完整 traceback）＋彈白話視窗。
-
-    取代散落各處的 msgCritical(title, str(e))——舊寫法既漏記 error.log，
-    又把 SQLite 英文原文（如 attempt to write a readonly database）丟給使用者。
-    （延遲 import 維持本模組「module 級不依賴專案其他模組」的原則。）
-    """
-    import logging
-    import traceback
-    from lib.db_utils import friendlyErrorMessage
-    logging.error("".join(
-        traceback.format_exception(type(exc), exc, exc.__traceback__)))
-    msgCritical(title, friendlyErrorMessage(type(exc), exc), parent)
 
 
 # ── 通用確認彈窗 ───────────────────────────────────────────────
@@ -103,23 +85,6 @@ def confirmBox(title, text, confirm_text="確認", cancel_text="取消",
     msg.setEscapeButton(btn_cancel)
     msg.exec()
     return msg.clickedButton() == btn_ok
-
-
-def loadUi(path):
-    """載入 .ui 檔案，回傳 widget；找不到檔案時彈出錯誤並回傳 None"""
-    f = QFile(path)
-    if not f.exists():
-        msgCritical("錯誤", f"找不到 UI 檔案: {path}")
-        return None
-    f.open(QFile.ReadOnly)
-    loader = QUiLoader()
-    # 註冊自訂元件，讓 .ui 內 class="NullableDateEdit"／"RecipientCombo" 被正確建立
-    from .widgets import NullableDateEdit, RecipientCombo
-    loader.registerCustomWidget(NullableDateEdit)
-    loader.registerCustomWidget(RecipientCombo)
-    widget = loader.load(f)
-    f.close()
-    return widget
 
 
 def icon_button(parent, title, standard_icon):

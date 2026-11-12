@@ -51,10 +51,10 @@ def test_invalid_version_does_not_modify_files(tmp_path, version):
     assert not (tmp_path / 'packaging/version_info.txt').exists()
 
 
-def test_prune_preserves_runtime_plugins_ssl_and_uitools_dependencies():
+def test_prune_preserves_runtime_plugins_ssl_and_network_dependencies():
     tool = load_tool('pyi_prune')
-    required = ['Qt6Core.dll', 'Qt6Gui.dll', 'Qt6Widgets.dll', 'Qt6OpenGL.dll', 'Qt6OpenGLWidgets.dll',
-                'Qt6UiTools.dll', 'Qt6Svg.dll', 'qsvg.dll', 'qsvgicon.dll', 'qico.dll', 'qwindows.dll',
+    required = ['Qt6Core.dll', 'Qt6Gui.dll', 'Qt6Widgets.dll', 'Qt6Network.dll',
+                'Qt6Svg.dll', 'qsvg.dll', 'qsvgicon.dll', 'qico.dll', 'qwindows.dll',
                 '_ssl.pyd', '_hashlib.pyd', 'libcrypto-3.dll', 'libssl-3.dll']
     analysis = SimpleNamespace(binaries=[(name, 'C:/Python/' + name, 'BINARY') for name in required] +
         [('Qt6Quick.dll', 'C:/Python/Qt6Quick.dll', 'BINARY'),
@@ -64,7 +64,6 @@ def test_prune_preserves_runtime_plugins_ssl_and_uitools_dependencies():
     tool.prune(analysis, verbose=False)
     assert [entry[0] for entry in analysis.binaries] == required
     assert [entry[0] for entry in analysis.datas] == ['PySide6/translations/qtbase_zh_TW.qm']
-    assert len(tool.force_qt_binaries()) == 2
 
 
 def test_prune_rejects_tool_runtime_dlls_without_removing_formal_dependencies():
@@ -111,7 +110,7 @@ def test_spec_configuration_collects_real_resources_without_building(tmp_path):
     assert {'assets/icons', 'assets', 'shell'} <= destinations
     assert (str(tmp_path / 'shell/AppxManifest.xml'), 'shell') in config['datas']
     for source, target in config['datas']: assert Path(source).exists()
-    assert 'PySide6.QtUiTools' in config['hiddenimports']
+    assert 'PySide6.QtSvg' in config['hiddenimports']
 
 
 def test_main_window_uses_version_source_and_loads_selected_icon(qtbot, monkeypatch):

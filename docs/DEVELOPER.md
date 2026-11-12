@@ -360,7 +360,8 @@ Python 路徑為 `C:\Users\user\AppData\Local\Programs\Python\Python312\python.e
 
 `packaging/DualMirror.spec` 參考 PoliceDocSys 的 Qt 瘦身及 POS 的 onefile 資源／版本宣告，
 已移植成本專案副本，不跨專案 import，不帶來源業務、機關署名或發布流程。
-`tools/pyi_prune.py` 保留 QtUiTools 的連結期 DLL、SVG／ICO／Windows 平台外掛及 Python SSL。
+`tools/pyi_prune.py` 保留 SVG／ICO／Windows 平台外掛及 Python SSL。
+未使用的 UI 檔載入與資料庫錯誤處理已從共用元件移除；不再強制收錄 QtUiTools／OpenGL 連結期 DLL。
 spec 收錄正式 `assets/` 圖示、manifest 與必要 Shell 檔案，排除開發套件及未使用的 QML 綁定。
 
 產品名稱與版本唯一來源為 `lib/settings/version.py`；由維護者決定版號後才執行：

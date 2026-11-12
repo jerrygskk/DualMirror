@@ -5,7 +5,7 @@ import sys
 
 root = Path(SPECPATH).resolve().parent
 sys.path.insert(0, str(root / 'tools'))
-from pyi_prune import prune, force_qt_binaries
+from pyi_prune import prune
 from bump_version import read_current, render_info
 
 info = root / 'packaging' / 'version_info.txt'
@@ -22,8 +22,8 @@ for source, _ in datas:
     if not Path(source).exists(): raise SystemExit(f'缺少打包資源：{source}')
 
 a = Analysis(
-    [str(root / 'main.py')], pathex=[str(root)], binaries=force_qt_binaries(), datas=datas,
-    hiddenimports=['PySide6.QtSvg', 'PySide6.QtUiTools',
+    [str(root / 'main.py')], pathex=[str(root)], binaries=[], datas=datas,
+    hiddenimports=['PySide6.QtSvg',
                    'pygments.styles.friendly', 'pygments.lexers.c_cpp', 'pygments.lexers.configs',
                    'pygments.lexers.css', 'pygments.lexers.data', 'pygments.lexers.dotnet',
                    'pygments.lexers.html', 'pygments.lexers.javascript', 'pygments.lexers.jvm',
