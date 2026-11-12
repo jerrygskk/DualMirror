@@ -897,7 +897,7 @@ class ComparisonSession(QMainWindow):
                     candidate = TextCompare(*pair, self.tabs, documents=docs, initial_blocks=blocks)
             old_index = self.tabs.indexOf(replacing) if replacing is not None else -1
             if replacing is not None:
-                replacing.flush_edit()
+                if isinstance(replacing, TextCompare): replacing.flush_edit()
                 if not replacing.close():
                     if candidate is not None: candidate.deleteLater()
                     return
@@ -1081,6 +1081,8 @@ class MainWindow(ComparisonSession):
         self.folder_sessions = []
         super().__init__()
         self.folder_sessions.append(self)
+        from lib.ui.file_drop import FileDropFilter
+        self.file_drop_filter = FileDropFilter(self)
 
     def command_target(self):
         current = self.tabs.currentWidget()
