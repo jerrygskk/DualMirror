@@ -9,7 +9,7 @@ def setup_pair(qtbot, tmp_path):
     for path, text in zip(paths, ('left\n', 'right\n', 'other\n')):
         path.write_text(text, encoding='utf-8')
     window = MainWindow(); qtbot.addWidget(window)
-    window.open_startup_pair(paths[:2])
+    window.open_startup_pair(paths[:2]); qtbot.waitUntil(lambda: not window.busy)
     return window, paths
 
 
@@ -24,6 +24,7 @@ def test_startup_and_enter_replace_only_requested_side(qtbot, tmp_path):
     assert row.itemAt(2).widget() is page.save_left
     page.path_edits[1].setText(str(paths[2]))
     qtbot.keyClick(page.path_edits[1], Qt.Key_Return)
+    qtbot.waitUntil(lambda: not window.busy)
     current = window.tabs.currentWidget()
     assert window.tabs.count() == 1
     assert current.file_pair == (paths[0], paths[2])
@@ -44,6 +45,7 @@ def test_invalid_path_and_cancel_keep_dirty_content(qtbot, tmp_path, monkeypatch
     monkeypatch.setattr(text_compare, 'confirmBox', lambda *args, **kwargs: False)
     page.path_edits[0].setText(str(paths[2]))
     page.request_path(0)
+    qtbot.waitUntil(lambda: not window.busy)
     assert window.tabs.currentWidget() is page
     assert page.texts[0] == 'unsaved\n'
     assert page.path_edits[0].text() == str(paths[0])
@@ -56,7 +58,7 @@ def test_browse_and_reuse_existing_pair(qtbot, tmp_path, monkeypatch):
     import lib.ui.text_compare as text_compare
     window, paths = setup_pair(qtbot, tmp_path)
     first = window.tabs.currentWidget()
-    window.open_file_pair((paths[0], paths[2]))
+    window.open_file_pair((paths[0], paths[2])); qtbot.waitUntil(lambda: not window.busy)
     second = window.tabs.currentWidget()
     monkeypatch.setattr(text_compare.QFileDialog, 'getOpenFileName', lambda *args: (str(paths[2]), ''))
     first.browse_path(1)

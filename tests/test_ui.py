@@ -52,7 +52,9 @@ def test_multiple_blocks_copy_selected(qtbot, tmp_path):
     window.close()
 
 
-def test_real_sync_preview_and_execute(qtbot, tmp_path):
+def test_real_sync_preview_and_execute(qtbot, tmp_path, monkeypatch):
+    errors = []
+    monkeypatch.setattr('lib.ui.main_window.msgCritical', lambda *args: errors.append(str(args)))
     left, right = tmp_path / 'l', tmp_path / 'r'
     left.mkdir(); right.mkdir()
     (left / 'x.bin').write_bytes(b'\x00new')
@@ -71,8 +73,10 @@ def test_real_sync_preview_and_execute(qtbot, tmp_path):
                     button.click(); timer.stop(); break
     timer.timeout.connect(approve); timer.start(20)
     qtbot.mouseClick(window.sync_right, Qt.LeftButton)
-    qtbot.waitUntil(lambda: not window.busy and (right / 'x.bin').read_bytes() == b'\x00new', timeout=10000)
+    qtbot.waitUntil(lambda: not window.busy, timeout=10000)
     timer.stop()
+    assert not errors, '\n'.join(errors)
+    assert (right / 'x.bin').read_bytes() == b'\x00new'
     assert (right / 'keep.txt').read_bytes() == b'keep'
     window.close()
 
@@ -161,13 +165,13 @@ def test_file_comparison_opens_in_existing_window_tab(qtbot, tmp_path):
     window.compare()
     qtbot.waitUntil(lambda: not window.busy, timeout=10000)
     window.tree.setCurrentItem(window.tree.topLevelItem(0))
-    window.open_selected()
+    window.open_selected(); qtbot.waitUntil(lambda: not window.busy)
     assert isinstance(window.tabs, QTabWidget)
     assert window.isAncestorOf(window.tabs) and window.tabs.isVisible()
     assert window.tabs.count() == 2
     assert isinstance(window.tabs.currentWidget(), TextCompare)
     assert not window.tabs.currentWidget().isWindow()
-    window.open_selected()
+    window.open_selected(); qtbot.waitUntil(lambda: not window.busy)
     assert window.tabs.count() == 2
     window.close_tab(1)
     assert window.tabs.count() == 1
@@ -183,7 +187,7 @@ def test_one_sided_text_opens_with_missing_side_disabled(qtbot, tmp_path, monkey
     window = MainWindow(); qtbot.addWidget(window)
     window.left_path.setText(str(left)); window.right_path.setText(str(right))
     window.compare(); qtbot.waitUntil(lambda: not window.busy, timeout=10000)
-    window.tree.setCurrentItem(window.tree.topLevelItem(0)); window.open_selected()
+    window.tree.setCurrentItem(window.tree.topLevelItem(0)); window.open_selected(); qtbot.waitUntil(lambda: not window.busy)
     assert window.tabs.count() == 2
     comparison = window.tabs.currentWidget()
     assert comparison.left_edit.toPlainText() == 'available'
@@ -218,7 +222,7 @@ def test_missing_side_becomes_available_after_file_created(qtbot, tmp_path):
     window = MainWindow(); qtbot.addWidget(window)
     window.left_path.setText(str(left)); window.right_path.setText(str(right))
     window.compare(); qtbot.waitUntil(lambda: not window.busy, timeout=10000)
-    window.tree.setCurrentItem(window.tree.topLevelItem(0)); window.open_selected()
+    window.tree.setCurrentItem(window.tree.topLevelItem(0)); window.open_selected(); qtbot.waitUntil(lambda: not window.busy)
     comparison = window.tabs.currentWidget()
     assert not comparison.right_edit.isEnabled()
     (right / 'only.txt').write_bytes(b'right')

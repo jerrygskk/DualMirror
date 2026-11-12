@@ -34,7 +34,7 @@ def test_text_tab_at_index_zero_still_closes_and_honors_unsaved_prompt(qtbot, tm
     import lib.ui.text_compare as text_compare
     window = MainWindow(); qtbot.addWidget(window); window.show()
     load_pair(window, qtbot, tmp_path)
-    window.tree.setCurrentItem(window.tree.topLevelItem(0)); window.open_selected()
+    window.tree.setCurrentItem(window.tree.topLevelItem(0)); window.open_selected(); qtbot.waitUntil(lambda: not window.busy)
     text = window.tabs.currentWidget()
     window.close_tab(0)
     assert window.tabs.currentWidget() is text and window.tabs.count() == 1

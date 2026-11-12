@@ -80,7 +80,7 @@ def test_open_hex_publishes_result_and_refresh_invalidates_it(qtbot, tmp_path):
     w.left_path.setText(str(left)); w.right_path.setText(str(right)); w.compare()
     qtbot.waitUntil(lambda: not w.busy)
     assert result_for(w, 'item.bin')[0] == ''
-    w.tree.setCurrentItem(w.tree.topLevelItem(0)); w.open_selected()
+    w.tree.setCurrentItem(w.tree.topLevelItem(0)); w.open_selected(); qtbot.waitUntil(lambda: not w.busy)
     qtbot.waitUntil(lambda: not w.busy and w.tabs.count() == 2)
     assert result_for(w, 'item.bin')[0] == '≠'
     w.close_tab(1)

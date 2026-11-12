@@ -326,7 +326,7 @@ class TextCompare(QWidget):
     saved = Signal()
     path_requested = Signal(int, str)
 
-    def __init__(self, left, right, parent=None, documents=None):
+    def __init__(self, left, right, parent=None, documents=None, initial_blocks=None):
         super().__init__(parent)
         self.setAttribute(Qt.WA_StyledBackground, True)
         self.file_paths = [Path(left), Path(right)]
@@ -334,6 +334,7 @@ class TextCompare(QWidget):
         if not any(self.docs) or any(doc is None and path.exists() for doc, path in zip(self.docs, self.file_paths)):
             raise ValueError('此檔案不是可辨識的文字檔，請使用整份覆寫。')
         self.texts = [doc.text if doc is not None else '' for doc in self.docs]
+        self._initial_blocks = initial_blocks
         self.setWindowTitle(f'文字比較 — {Path(left).name} ↔ {Path(right).name}')
         self.resize(1450, 850)
         self.current = 0
@@ -516,7 +517,8 @@ class TextCompare(QWidget):
     def refresh(self):
         self.custom_rows = None
         self._rendering = True
-        self.blocks = differences(*self.texts)
+        self.blocks = self._initial_blocks if self._initial_blocks is not None else differences(*self.texts)
+        self._initial_blocks = None
         self.align_display()
         self.current = min(self.current, max(0, len(self.blocks) - 1))
         self.save_left.setEnabled(self.dirty[0])

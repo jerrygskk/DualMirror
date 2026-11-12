@@ -11,12 +11,12 @@ def test_binary_opens_in_same_window_and_reuses_tab(qtbot, tmp_path, monkeypatch
     window.left_path.setText(str(left)); window.right_path.setText(str(right))
     window.compare(); qtbot.waitUntil(lambda: not window.busy)
     window.tree.topLevelItem(0).setSelected(True)
-    window.open_selected(); qtbot.waitUntil(lambda: not window.busy)
+    window.open_selected(); qtbot.waitUntil(lambda: not window.busy); qtbot.waitUntil(lambda: not window.busy)
     assert window.tabs.count() == 2
     tab = window.tabs.currentWidget()
     assert tab.models[0].data(tab.models[0].index(0, 3)) == '62'
     assert tab.blocks == [(2, 3)]
-    window.open_selected(); assert window.tabs.count() == 2
+    window.open_selected(); qtbot.waitUntil(lambda: not window.busy); assert window.tabs.count() == 2
     window.close()
 
 
@@ -50,7 +50,7 @@ def test_hex_external_change_refreshes_open_tab(qtbot, tmp_path):
     window = MainWindow(); qtbot.addWidget(window)
     window.left_path.setText(str(left)); window.right_path.setText(str(right))
     window.compare(); qtbot.waitUntil(lambda: not window.busy)
-    window.tree.topLevelItem(0).setSelected(True); window.open_selected()
+    window.tree.topLevelItem(0).setSelected(True); window.open_selected(); qtbot.waitUntil(lambda: not window.busy)
     qtbot.waitUntil(lambda: not window.busy)
     tab = window.tabs.currentWidget(); assert isinstance(tab, HexCompare)
     (right / 'a.bin').write_bytes(b'\0axc!')

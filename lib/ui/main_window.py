@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
     QHBoxLayout, QLineEdit, QPushButton, QLabel, QFileDialog, QComboBox,
     QTreeWidget, QTreeWidgetItem, QHeaderView, QDialog, QDialogButtonBox,
     QPlainTextEdit, QStyle, QTabWidget, QTabBar, QSplitter, QAbstractItemView, QFrame, QMenu, QInputDialog, QStackedWidget)
-from lib.core.core import compare_paths, TextFile, sync_plan, execute_plan, make_action, selection_plan, roots, verify_contents, pair_stamp
+from lib.core.core import compare_paths, TextFile, differences, sync_plan, execute_plan, make_action, selection_plan, roots, verify_contents, pair_stamp
 from lib.ui.text_compare import TextCompare
 from lib.ui.hex_compare import HexCompare, load_binary_comparison
 from lib.ui.theme import APP_STYLE, apply_light_palette
@@ -48,6 +48,8 @@ class ComparisonSession(QMainWindow):
         self.busy = False
         self.rows = []
         self.workers = []
+        self._file_requests = []
+        self._loading_request = None
         self.windows = []
         self.compared_paths = None
         self.auto_open_files = False
@@ -311,6 +313,7 @@ class ComparisonSession(QMainWindow):
         self.workers.remove(worker); worker.deleteLater()
         self.update_controls()
         if self._refresh_pending: self.refresh_timer.start(0)
+        self.process_file_requests()
 
     def request_refresh(self, *_):
         if self._closing: return
@@ -794,27 +797,8 @@ class ComparisonSession(QMainWindow):
         row = rows[0]
         if row.directory or row.status == 'conflict':
             msgInfo('無法開啟文字比較', '請選取檔案；資料夾或同名類型衝突無法開啟文字比較。', self); return
-        try:
-            pair = (row.left.resolve(), row.right.resolve())
-            for window in (self.host.windows if self.host is not None else self.windows):
-                if window.file_pair == pair:
-                    (self.host.tabs if self.host is not None else self.tabs).setCurrentWidget(window)
-                    return
-            documents = self.pending_documents
-            if documents is None:
-                documents = [TextFile.load(path) if path.exists() else None for path in pair]
-            self.pending_documents = None
-            if any(doc is None and path.exists() for doc, path in zip(documents, pair)):
-                def operation():
-                    return load_binary_comparison(pair)
-                def complete(result):
-                    data, alignment, stamp = result
-                    self.add_comparison_tab(HexCompare(*pair, self.tabs, documents=data, alignment=alignment, stamp=stamp), pair)
-                self.run_job(operation, complete)
-            else:
-                self.add_comparison_tab(TextCompare(*pair, self.tabs, documents=documents), pair)
-        except Exception as error:
-            msgInfo('檔案比較', str(error), self)
+        self.pending_documents = None
+        self.open_file_pair((row.left, row.right), allow_missing=True)
 
     def add_comparison_tab(self, window, pair):
         if self.host is not None:
@@ -841,24 +825,76 @@ class ComparisonSession(QMainWindow):
             self.left_path.setText(str(pair[0])); self.right_path.setText(str(pair[1]))
             self.compare()
 
-    def open_file_pair(self, pair, replacing=None):
-        """直接開啟單檔配對，換檔驗證成功後才關閉舊分頁。"""
+    def open_file_pair(self, pair, replacing=None, allow_missing=False):
+        """排入背景載入，驗證成功並確認捨棄後才替換舊分頁。"""
+        if self.host is not None:
+            self.host.open_file_pair(pair, replacing, allow_missing)
+            return
         try:
             pair = tuple(Path(path).resolve() for path in pair)
-            if not all(path.is_file() for path in pair):
+            if len(pair) != 2 or (not allow_missing and not all(path.is_file() for path in pair)):
                 raise ValueError('請指定兩個存在的檔案。')
+            if allow_missing and (not any(path.is_file() for path in pair) or
+                                  any(path.exists() and not path.is_file() for path in pair)):
+                raise ValueError('請指定檔案配對。')
             if pair[0] == pair[1]:
                 raise ValueError('左右兩側不得指定相同檔案。')
             if replacing is not None and pair == replacing.file_pair: return
+            request = (pair, replacing, allow_missing)
+            if request == self._loading_request or request in self._file_requests: return
+            self._file_requests.append(request)
+            self.process_file_requests()
+        except Exception as error:
+            msgInfo('檔案比較', str(error), self)
+
+    def process_file_requests(self):
+        if self.busy or self._loading_request is not None or self._confirmation_active or self._closing: return
+        while self._file_requests:
+            request = self._file_requests.pop(0)
+            pair, replacing, allow_missing = request
+            if replacing is not None and replacing not in self.windows: continue
+            if any(page.file_pair == pair for page in self.windows):
+                self.complete_file_request(request, None)
+                if self.busy or self._confirmation_active: return
+                continue
+            self._loading_request = request
+            self.summary.setText('正在讀取並比較檔案…')
+            def operation(pair=pair, allow_missing=allow_missing):
+                before = pair_stamp(*pair)
+                if not allow_missing and not all(path.is_file() for path in pair):
+                    raise ValueError('請指定兩個存在的檔案。')
+                docs = [TextFile.load(path) if path.exists() else None for path in pair]
+                binary = None
+                blocks = None
+                if any(doc is None and path.exists() for doc, path in zip(docs, pair)):
+                    binary = load_binary_comparison(pair)
+                else:
+                    blocks = differences(*(doc.text if doc is not None else '' for doc in docs))
+                if pair_stamp(*pair) != before: raise OSError('檔案在讀取期間已變更，請重新開啟。')
+                return docs, blocks, binary, before
+            self.run_job(operation, lambda result, r=request: self.complete_file_request(r, result))
+            self.workers[-1].finished.connect(lambda r=request: self.finish_file_request(r))
+            return
+
+    def finish_file_request(self, request):
+        if self._loading_request == request: self._loading_request = None
+        self.process_file_requests()
+
+    def complete_file_request(self, request, result):
+        pair, replacing, _ = request
+        candidate = None
+        self._confirmation_active = True
+        try:
+            if self._closing or (replacing is not None and replacing not in self.windows): return
             existing = next((item for item in self.windows if item.file_pair == pair), None)
-            candidate = None
             if existing is None:
-                docs = [TextFile.load(path) for path in pair]
-                if any(doc is None for doc in docs):
-                    data, alignment, stamp = load_binary_comparison(pair)
+                docs, blocks, binary, stamp = result
+                if pair_stamp(*pair) != stamp: raise OSError('檔案在讀取後已變更，請重新開啟。')
+                if binary is not None:
+                    data, alignment, stamp = binary
                     candidate = HexCompare(*pair, self.tabs, documents=data, alignment=alignment, stamp=stamp)
                 else:
-                    candidate = TextCompare(*pair, self.tabs, documents=docs)
+                    candidate = TextCompare(*pair, self.tabs, documents=docs, initial_blocks=blocks)
             old_index = self.tabs.indexOf(replacing) if replacing is not None else -1
             if replacing is not None:
                 replacing.flush_edit()
@@ -877,10 +913,15 @@ class ComparisonSession(QMainWindow):
             self.update_watches()
             self.update_current_tab()
         except Exception as error:
+            if candidate is not None and candidate not in self.windows: candidate.deleteLater()
             msgInfo('檔案比較', str(error), self)
+        finally:
+            self._confirmation_active = False
+            if self._refresh_pending: self.refresh_timer.start(0)
+            self.process_file_requests()
 
     def replace_comparison_path(self, window, side, path):
-        if self.busy or window not in self.windows: return
+        if window not in self.windows: return
         pair = list(window.file_pair)
         pair[side] = path
         self.open_file_pair(pair, replacing=window)
