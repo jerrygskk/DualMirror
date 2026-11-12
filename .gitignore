@@ -1,0 +1,51 @@
+# 暫存、快取與建置產物（參考 PoliceDocSys）
+tmp/
+.tmp/
+.superpowers/
+__pycache__/
+.pytest_cache/
+build/
+dist/
+*.lib
+*.pdb
+*.pyc
+logs/
+version_info.txt
+release_note_*.md
+
+# 本機交接與修復／造資料腳本，不是產品原始碼
+HANDOFF.md
+HANDOVER.md
+docs/handover.md
+/fix_*.py
+/seed_*.py
+/reset_password.py
+
+# 真實資料、備份與下載中檔案
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.sqlite-*
+backups/
+_shell/
+*.xlsm
+*.crdownload
+*.log
+build_log.txt
+
+# 個資比對名單、憑證與本機使用者設定
+tests/pii_denylist.local.txt
+.env
+.env.*
+*.pem
+*.key
+*.pfx
+*.p12
+credentials*.json
+tokens*.json
+browser-profile/
+fonts.json
+launcher.txt
+left.txt
+shell-root.txt

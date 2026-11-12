@@ -1,0 +1,4 @@
+# Windows 啟動及原生建置腳本固定 CRLF；UTF-8 內容不作編碼轉換。
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf

@@ -1,0 +1,4 @@
+# 產品 runtime；正式 Python 3.12，實裝快照：2026-11-11。
+PySide6==6.11.1
+Pygments==2.20.0
+charset-normalizer==3.4.7

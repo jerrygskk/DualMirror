@@ -1,0 +1,7 @@
+# 正式 Python 實裝快照：2026-11-11；不帶來源專案的業務／文件套件。
+-r requirements.txt
+PyInstaller==6.20.0
+pyinstaller-hooks-contrib==2026.5
+pytest==9.1.1
+pytest-qt==4.5.0
+pytest-xdist==3.8.0
